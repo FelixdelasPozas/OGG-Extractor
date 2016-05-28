@@ -31,8 +31,13 @@
 // C++
 #include <iostream>
 
+// libvorbis
+#include <vorbis/vorbisfile.h>
+
 const long long BUFFER_SIZE = 5242880; /** 5 MB size buffer. */
 const char *OGG_HEADER = "OggS";  /** Ogg header signature. */
+
+using namespace OGGWrapper;
 
 //----------------------------------------------------------------
 OGGExtractor::OGGExtractor(QWidget *parent, Qt::WindowFlags flags)
@@ -43,6 +48,7 @@ OGGExtractor::OGGExtractor(QWidget *parent, Qt::WindowFlags flags)
 
   m_cancel->hide();
   m_progress->hide();
+  m_progress->setMaximum(100);
 
   m_containersList->setModel(new QStringListModel(m_containers));
   m_containersList->setSelectionMode(QListView::SelectionMode::MultiSelection);
@@ -159,13 +165,7 @@ void OGGExtractor::cancelScan()
 //----------------------------------------------------------------
 void OGGExtractor::scanContainers()
 {
-  m_cancelProcess = false;
-
-  disconnect(m_containersList->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-             this,                               SLOT(onContainerSelectionChanged()));
-
-  m_addFile->setEnabled(false);
-  m_removeFile->setEnabled(false);
+  startProcess();
 
   m_filesTable->clearContents();
 
@@ -180,11 +180,6 @@ void OGGExtractor::scanContainers()
     totalSize += file.size();
   }
 
-  m_progress->setValue(0);
-  m_progress->setMaximum(100);
-  m_progress->show();
-  m_cancel->show();
-
   for(auto filename: m_containers)
   {
     if(m_cancelProcess) break;
@@ -192,14 +187,10 @@ void OGGExtractor::scanContainers()
     QFile file(filename);
     if(!file.open(QFile::ReadOnly))
     {
-      QMessageBox dialog;
-      dialog.setWindowTitle(tr("Error reading file"));
-      dialog.setWindowIcon(QIcon(":/OGGExtractor/application.svg"));
-      dialog.setModal(true);
-      dialog.setText(tr("Error opening file '%1'").arg(filename));
-      dialog.setDetailedText(tr("Error: %2").arg(file.errorString()));
+      auto error   = tr("Error opening file '%1'").arg(filename);
+      auto details = tr("Error: %1").arg(file.errorString());
+      errorDialog(error, details);
 
-      dialog.exec();
       continue;
     }
 
@@ -221,7 +212,7 @@ void OGGExtractor::scanContainers()
 
       for (long long loop = 0; loop < bytesRead && !eof && !m_cancelProcess; ++loop)
       {
-        /* check for "OggS" header and flags */
+        // check for "OggS" header and flags
         if (buffer[loop] == 0x4F)
         {
           auto position   = file.pos();
@@ -229,12 +220,9 @@ void OGGExtractor::scanContainers()
           unsigned long long readResult = file.read(reinterpret_cast<char *>(&oggHeader[0]), sizeof(oggHeader));
           if(!seekResult || (sizeof(oggHeader) != readResult))
           {
-            QMessageBox dialog;
-            dialog.setWindowTitle(tr("Error reading file"));
-            dialog.setWindowIcon(QIcon(":/OGGExtractor/application.svg"));
-            dialog.setModal(true);
-            dialog.setText(tr("Error scanning file '%1'").arg(filename));
-            dialog.exec();
+            auto error   = tr("Error scanning file '%1'").arg(filename);
+            auto details = tr("ERROR: %1").arg(file.errorString());
+            errorDialog(error, details);
 
             eof = true;
             continue;
@@ -243,7 +231,7 @@ void OGGExtractor::scanContainers()
 
           if (0 == (strncmp((const char *) oggHeader, OGG_HEADER, 4)))
           {
-            /* detected beginning of ogg file */
+            // detected beginning of ogg file
             if (oggHeader[5] == 0x02)
             {
               beginFound = true;
@@ -251,16 +239,13 @@ void OGGExtractor::scanContainers()
               continue;
             }
 
-            /* detected ending of ogg file, more difficult because of trailing frames */
+            // detected ending of ogg file, more difficult because of trailing frames
             if (beginFound && ((oggHeader[5] == 0x04) || (oggHeader[5] == 0x05)))
             {
               endFound = true;
               oggEnding = processed + loop + 27;
 
-              /* we need to do this because we can be at the very end */
-              /* of the buffer and don't want to look outside it      */
-              auto trailingSize = static_cast<size_t>(oggHeader[26]);
-
+              auto trailingSize   = static_cast<size_t>(oggHeader[26]);
               auto trailingFrames = new char[trailingSize];
 
               position   = file.pos();
@@ -269,13 +254,9 @@ void OGGExtractor::scanContainers()
 
               if (!seekResult || (trailingSize != readResult))
               {
-                QMessageBox dialog;
-                dialog.setWindowTitle(tr("Error reading file"));
-                dialog.setWindowIcon(QIcon(":/OGGExtractor/application.svg"));
-                dialog.setModal(true);
-                dialog.setText(tr("I/O error reading input file, probably tried to read past EOF while scanning '%1'").arg(filename));
-                dialog.setDetailedText(tr("ERROR: %1").arg(file.errorString()));
-                dialog.exec();
+                auto error   = tr("I/O error reading input file, probably tried to read past EOF while scanning '%1'").arg(filename);
+                auto details = tr("ERROR: %1").arg(file.errorString());
+                errorDialog(error, details);
 
                 delete [] trailingFrames;
 
@@ -294,7 +275,6 @@ void OGGExtractor::scanContainers()
               delete [] trailingFrames;
             }
 
-            /* every beginning has an end ;-) */
             if ((beginFound == true) && (endFound == true))
             {
               beginFound = false;
@@ -307,49 +287,14 @@ void OGGExtractor::scanContainers()
                 continue;
               }
 
-              ogg_data data;
+              OGGData data;
+              data.container = filename;
               data.start     = oggBeginning;
               data.end       = oggEnding;
-              data.container = filename;
 
               m_soundFiles << data;
 
-              auto row = m_soundFiles.size() - 1;
-              m_filesTable->insertRow(row);
-
-              auto widget = new QWidget();
-              auto checkBox = new QCheckBox();
-              checkBox->setChecked(true);
-
-              connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(checkSelectedFiles()));
-              auto layout = new QHBoxLayout(widget);
-              layout->addWidget(checkBox);
-              layout->setAlignment(Qt::AlignCenter);
-              layout->setContentsMargins(0,0,0,0);
-              widget->setLayout(layout);
-              m_filesTable->setCellWidget(row,0,widget);
-
-              auto name = new QLabel(tr("found_ogg_%1").arg(row, 6, 10, QChar('0')));
-              name->setAlignment(Qt::AlignCenter);
-              m_filesTable->setCellWidget(row,1, name);
-
-              auto containerName = data.container.split('/').last().split('.').first();
-              auto containerWidget = new QLabel(containerName);
-              containerWidget->setAlignment(Qt::AlignCenter);
-              m_filesTable->setCellWidget(row,2, containerWidget);
-
-              m_filesTable->setCellWidget(row,3, new QLabel("HH:MM:SS"));
-
-              widget = new QWidget();
-              auto button = new QPushButton(QIcon(":/OGGExtractor/play.svg"), "");
-              button->setFixedSize(24,24);
-              layout = new QHBoxLayout(widget);
-              layout->addWidget(button);
-              layout->setAlignment(Qt::AlignCenter);
-              layout->setContentsMargins(0,0,0,0);
-              widget->setLayout(layout);
-              m_filesTable->setCellWidget(row,4,widget);
-
+              insertDataInTable(data);
             }
           }
         }
@@ -368,15 +313,7 @@ void OGGExtractor::scanContainers()
 
   delete [] buffer;
 
-  m_progress->hide();
-  m_progress->setValue(0);
-  m_cancel->hide();
-
-  connect(m_containersList->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-          this,                               SLOT(onContainerSelectionChanged()));
-
-  m_addFile->setEnabled(true);
-  onContainerSelectionChanged();
+  endProcess();
 
   m_filesTable->setEnabled(!m_soundFiles.isEmpty());
   m_filesTable->adjustSize();
@@ -388,12 +325,10 @@ void OGGExtractor::scanContainers()
 void OGGExtractor::extractFiles()
 {
   auto destination = QFileDialog::getExistingDirectory(centralWidget(), tr("Select destination directory"), QDir::currentPath());
+
   if(destination.isEmpty()) return;
 
-  m_cancelProcess = false;
-  m_progress->setValue(0);
-  m_progress->show();
-  m_cancel->show();
+  startProcess();
 
   for(int i = 0; i < m_soundFiles.size() && !m_cancelProcess; ++i)
   {
@@ -406,13 +341,7 @@ void OGGExtractor::extractFiles()
 
     if(!checkBox)
     {
-      QMessageBox dialog;
-      dialog.setWindowTitle(tr("Error extracting OGG file"));
-      dialog.setWindowIcon(QIcon(":/OGGExtractor/application.svg"));
-      dialog.setModal(true);
-      dialog.setText(tr("Error extracting file '%1'").arg(i));
-      dialog.exec();
-
+      errorDialog(tr("Error extracting file '%1'").arg(i));
       return;
     }
 
@@ -423,14 +352,7 @@ void OGGExtractor::extractFiles()
 
       if(!file.open(QFile::Truncate|QFile::WriteOnly))
       {
-        QMessageBox dialog;
-        dialog.setWindowTitle(tr("Error extracting OGG file"));
-        dialog.setWindowIcon(QIcon(":/OGGExtractor/application.svg"));
-        dialog.setModal(true);
-        dialog.setText(tr("Couldn't create file '%1'").arg(file.fileName()));
-        dialog.setDetailedText(tr("Error: %1").arg(file.errorString()));
-        dialog.exec();
-
+        errorDialog(tr("Couldn't create file '%1'").arg(file.fileName()), tr("Error: %1").arg(file.errorString()));
         return;
       }
 
@@ -438,14 +360,7 @@ void OGGExtractor::extractFiles()
 
       if(!source.open(QFile::ReadOnly))
       {
-        QMessageBox dialog;
-        dialog.setWindowTitle(tr("Error extracting OGG file"));
-        dialog.setWindowIcon(QIcon(":/OGGExtractor/application.svg"));
-        dialog.setModal(true);
-        dialog.setText(tr("Couldn't open container file '%1'").arg(data.container));
-        dialog.setDetailedText(tr("Error: %1").arg(source.errorString()));
-        dialog.exec();
-
+        errorDialog(tr("Couldn't open container file '%1'").arg(data.container), tr("Error: %1").arg(source.errorString()));
         return;
       }
 
@@ -454,14 +369,7 @@ void OGGExtractor::extractFiles()
 
       if(!file.flush())
       {
-        QMessageBox dialog;
-        dialog.setWindowTitle(tr("Error extracting OGG file"));
-        dialog.setWindowIcon(QIcon(":/OGGExtractor/application.svg"));
-        dialog.setModal(true);
-        dialog.setText(tr("Error flushing '%1'").arg(file.fileName()));
-        dialog.setDetailedText(tr("Error: %1").arg(file.errorString()));
-        dialog.exec();
-
+        errorDialog(tr("Error flushing '%1'").arg(file.fileName()), tr("Error: %1").arg(file.errorString()));
         return;
       }
 
@@ -470,10 +378,8 @@ void OGGExtractor::extractFiles()
     }
   }
 
-  m_cancelProcess = false;
-  m_progress->setValue(0);
-  m_progress->hide();
-  m_cancel->hide();
+  endProcess();
+
   QApplication::processEvents();
 }
 
@@ -500,4 +406,148 @@ void OGGExtractor::checkSelectedFiles()
   }
 
   m_extract->setEnabled(enable);
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::insertDataInTable(const OGGData& data)
+{
+  auto row = m_soundFiles.size() - 1;
+  m_filesTable->insertRow(row);
+
+  auto widget = new QWidget();
+  auto checkBox = new QCheckBox();
+  checkBox->setChecked(true);
+
+  connect(checkBox, SIGNAL(stateChanged(int)), this, SLOT(checkSelectedFiles()));
+  auto layout = new QHBoxLayout(widget);
+  layout->addWidget(checkBox);
+  layout->setAlignment(Qt::AlignCenter);
+  layout->setContentsMargins(0,0,0,0);
+  widget->setLayout(layout);
+  m_filesTable->setCellWidget(row,0,widget);
+
+  auto name = new QLabel(tr("found_ogg_%1").arg(row, 6, 10, QChar('0')));
+  name->setAlignment(Qt::AlignCenter);
+  m_filesTable->setCellWidget(row,1, name);
+
+  auto containerName = data.container.split('/').last().split('.').first();
+  auto containerWidget = new QLabel(containerName);
+  containerWidget->setAlignment(Qt::AlignCenter);
+  m_filesTable->setCellWidget(row,2, containerWidget);
+
+  auto seconds = oggTime(data);
+  auto time    = tr("%1:%2:%3").arg(seconds/3600, 2, 10, QChar('0')).arg(seconds/60, 2, 10, QChar('0')).arg(seconds%60, 2, 10, QChar('0'));
+  auto timeLabel = new QLabel{time};
+  timeLabel->setAlignment(Qt::AlignCenter);
+  m_filesTable->setCellWidget(row,3, timeLabel);
+
+  widget = new QWidget();
+  auto button = new QPushButton(QIcon(":/OGGExtractor/play.svg"), "");
+  button->setFixedSize(24,24);
+  layout = new QHBoxLayout(widget);
+  layout->addWidget(button);
+  layout->setAlignment(Qt::AlignCenter);
+  layout->setContentsMargins(0,0,0,0);
+  widget->setLayout(layout);
+  m_filesTable->setCellWidget(row,4,widget);
+
+
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::errorDialog(const QString& error, const QString& details) const
+{
+  QMessageBox dialog;
+  dialog.setWindowTitle(tr("Error"));
+  dialog.setWindowIcon(QIcon(":/OGGExtractor/application.svg"));
+  dialog.setModal(true);
+  dialog.setText(error);
+  if(!details.isEmpty())
+  {
+    dialog.setDetailedText(details);
+  }
+  dialog.exec();
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::startProcess()
+{
+  m_cancelProcess = false;
+
+  disconnect(m_containersList->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+             this,                               SLOT(onContainerSelectionChanged()));
+
+  m_addFile->setEnabled(false);
+  m_removeFile->setEnabled(false);
+
+  m_progress->setValue(0);
+  m_progress->show();
+  m_cancel->show();
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::endProcess()
+{
+  m_cancelProcess = false;
+
+  connect(m_containersList->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+          this,                               SLOT(onContainerSelectionChanged()));
+
+  m_addFile->setEnabled(true);
+  onContainerSelectionChanged();
+
+  m_progress->setValue(0);
+  m_progress->hide();
+  m_cancel->hide();
+}
+
+//----------------------------------------------------------------
+unsigned int OGGExtractor::oggTime(const OGGData& data) const
+{
+  unsigned int result = 0;
+
+  OGGContainerWrapper wrapper{data};
+  ov_callbacks callbacks;
+  callbacks.read_func  = OGGWrapper::read;
+  callbacks.seek_func  = OGGWrapper::seek;
+  callbacks.close_func = OGGWrapper::close;
+  callbacks.tell_func  = OGGWrapper::tell;
+
+  OggVorbis_File oggFile;
+
+  auto ov_result = ov_open_callbacks(reinterpret_cast<void *>(&wrapper), &oggFile, nullptr, 0, callbacks);
+
+  if(ov_result != 0)
+  {
+    auto error = tr("Couldn't register OGG callbacks.");
+    QString details;
+    switch(ov_result)
+    {
+      case OV_EREAD:
+        details = tr("A read from media returned an error.");
+        break;
+      case OV_ENOTVORBIS:
+        details = tr("Bitstream does not contain any Vorbis data.");
+        break;
+      case OV_EVERSION:
+        details = tr("Vorbis version mismatch.");
+        break;
+      case OV_EBADHEADER:
+        details = tr("Invalid Vorbis bitstream header.");
+        break;
+      case OV_EFAULT:
+        details = tr("Internal logic fault; indicates a bug or heap/stack corruption.");
+        break;
+      default:
+        details = tr("Unknown error.");
+    }
+
+    errorDialog(error, details);
+  }
+  else
+  {
+    result = ov_time_total(&oggFile, -1);
+  }
+
+  return result;
 }

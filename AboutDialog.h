@@ -1,6 +1,6 @@
 /*
  File: AboutDialog.h
- Created on: 02/07/2015
+ Created on: 26/05/2016
  Author: Felix de las Pozas Alvarez
 
  This program is free software: you can redistribute it and/or modify
@@ -48,9 +48,6 @@ class AboutDialog
      */
     virtual ~AboutDialog()
     {};
-
-  private:
-    static const QString VERSION; /** application version string. */
 };
 
 #endif // ABOUTDIALOG_H_

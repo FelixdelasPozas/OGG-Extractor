@@ -1,6 +1,6 @@
 /*
  File: AboutDialog.cpp
- Created on: 02/07/2015
+ Created on: 26/05/2016
  Author: Felix de las Pozas Alvarez
 
  This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 // Project
 #include "AboutDialog.h"
 
-const QString AboutDialog::VERSION = QString("version 1.5.0");
+const QString VERSION = QString("version 1.5.0");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)

@@ -16,6 +16,15 @@ set(CMAKE_AUTOMOC ON)
 # Find the QtWidgets library
 find_package(Qt5 COMPONENTS Widgets Multimedia)
 
+#libvorbis
+set(LIBVORBIS_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.5/include")
+set(LIBVORBIS_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.5/lib/.libs")
+set(LIBVORBIS_LIBRARIES   ${LIBVORBIS_LIBRARY_DIR}/libvorbisfile.a
+                          ${LIBVORBIS_LIBRARY_DIR}/libvorbis.a)
+                          
+#libogg
+set(LIBOGG_LIBRARY "D:/Desarrollo/Bibliotecas/libogg-1.3.2/src/.libs/libogg.a")
+                          
 # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
 #add_definitions(${Qt5Widgets_DEFINITIONS})
 #add_definitions(${Qt5Multimedia_DEFINITIONS})
@@ -40,6 +49,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}          # Generated .h files
   ${CMAKE_CURRENT_BINARY_DIR}  # For wrap/ui files
+  ${LIBVORBIS_INCLUDE_DIR}
   )
 
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -mwindows")
@@ -65,11 +75,14 @@ set (CORE_SOURCES
   main.cpp
   OGGExtractor.cpp
   AboutDialog.cpp
+  OGGContainerWrapper.cpp
 )
 
 set(CORE_EXTERNAL_LIBS
   Qt5::Widgets
   Qt5::Multimedia
+  ${LIBVORBIS_LIBRARIES}
+  ${LIBOGG_LIBRARY}
 )
 
 add_executable(OGGExtractor ${CORE_SOURCES})

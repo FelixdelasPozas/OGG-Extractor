@@ -21,6 +21,9 @@
 #include <QMainWindow>
 #include "ui_OGGExtractor.h"
 
+// Project
+#include "OGGContainerWrapper.h"
+
 /** \class OGGExtractor
  * \brief Main dialog class.
  *
@@ -96,15 +99,36 @@ class OGGExtractor
      */
     void connectSignals();
 
-    struct ogg_data
-    {
-      unsigned long long start;
-      unsigned long long end;
-      QString container;
-    };
+    /** \brief Adds a row to the OGG file table widget.
+     * \param[in] data OGG file data.
+     *
+     */
+    void insertDataInTable(const OGGData &data);
 
-    QStringList m_containers; /** file names of the containers. */
-    QList<ogg_data> m_soundFiles;
+    /** \brief Shows an error dialog with the given error mesage and details.
+     * \param[in] error error message.
+     * \param[in] details error details message.
+     *
+     */
+    void errorDialog(const QString &error, const QString &details = QString()) const;
 
-    bool m_cancelProcess; /** true if current process has been cancelled. */
+    /** \brief Disables parts of the UI when starting a process.
+     *
+     */
+    void startProcess();
+
+    /** \brief Enables parts of the UI when ending a process.
+     *
+     */
+    void endProcess();
+
+    /** \brief Returns the time in seconds of the OGG file of the given data.
+     * \param[in] data OGG file data.
+     *
+     */
+    unsigned int oggTime(const OGGData &data) const;
+
+    QStringList    m_containers;    /** file names of the containers.               */
+    QList<OGGData> m_soundFiles;    /** found OGG files information.                */
+    bool           m_cancelProcess; /** true if current process has been cancelled. */
 };
