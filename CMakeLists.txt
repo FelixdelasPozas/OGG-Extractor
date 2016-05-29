@@ -63,7 +63,6 @@ qt5_wrap_ui(CORE_UI
   # .ui for Qt
   AboutDialog.ui
   OGGExtractor.ui
-  item.ui
 )
 	
 set (CORE_SOURCES

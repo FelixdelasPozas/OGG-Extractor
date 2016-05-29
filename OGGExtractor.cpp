@@ -18,24 +18,35 @@
  */
 
 // Project
-#include "OGGExtractor.h"
 #include "AboutDialog.h"
-
-// Qt
-#include <QFileDialog>
-#include <QStringListModel>
-#include <QMessageBox>
-#include <QApplication>
-#include <QDebug>
-
-// C++
-#include <iostream>
+#include "OGGExtractor.h"
 
 // libvorbis
+#include <vorbis/codec.h>
 #include <vorbis/vorbisfile.h>
 
-const long long BUFFER_SIZE = 5242880; /** 5 MB size buffer. */
-const char *OGG_HEADER = "OggS";  /** Ogg header signature. */
+// Qt
+#include <QApplication>
+#include <QAudioOutput>
+#include <QBuffer>
+#include <QCheckBox>
+#include <QFile>
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QHeaderView>
+#include <QLabel>
+#include <QLineEdit>
+#include <QListView>
+#include <QMessageBox>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QSpinBox>
+#include <QStringListModel>
+#include <QTableWidget>
+#include <QToolButton>
+
+const long long BUFFER_SIZE = 5242880; /** 5 MB size buffer.     */
+const char *OGG_HEADER = "OggS";       /** Ogg header signature. */
 
 using namespace OGGWrapper;
 
@@ -43,12 +54,18 @@ using namespace OGGWrapper;
 OGGExtractor::OGGExtractor(QWidget *parent, Qt::WindowFlags flags)
 : QMainWindow    {parent, flags}
 , m_cancelProcess{false}
+, m_volume       {1.0}
+, m_playButton   {nullptr}
+, m_sample       {nullptr}
+, m_buffer       {nullptr}
+, m_audio        {nullptr}
 {
   setupUi(this);
 
-  m_cancel->hide();
-  m_progress->hide();
+  m_cancel->setEnabled(false);
   m_progress->setMaximum(100);
+  m_progress->setValue(0);
+  m_progress->setEnabled(false);
 
   m_containersList->setModel(new QStringListModel(m_containers));
   m_containersList->setSelectionMode(QListView::SelectionMode::MultiSelection);
@@ -68,28 +85,57 @@ OGGExtractor::OGGExtractor(QWidget *parent, Qt::WindowFlags flags)
 //----------------------------------------------------------------
 OGGExtractor::~OGGExtractor()
 {
+  stopBuffer();
 }
 
 //----------------------------------------------------------------
 void OGGExtractor::connectSignals()
 {
-  connect(m_addFile,    SIGNAL(pressed()), this, SLOT(onFileAdd()));
-  connect(m_removeFile, SIGNAL(pressed()), this, SLOT(onFileRemove()));
-  connect(m_about,      SIGNAL(pressed()), this, SLOT(showAboutDialog()));
-  connect(m_quit,       SIGNAL(pressed()), this, SLOT(close()));
-  connect(m_scan,       SIGNAL(pressed()), this, SLOT(scanContainers()));
-  connect(m_extract,    SIGNAL(pressed()), this, SLOT(extractFiles()));
-  connect(m_cancel,     SIGNAL(pressed()), this, SLOT(cancelScan()));
-  connect(m_size,       SIGNAL(stateChanged(int)), this, SLOT(onSizeStateChange(int)));
+  auto selectionModel = m_containersList->selectionModel();
+  connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+          this,           SLOT(onContainerSelectionChanged()));
 
-  connect(m_containersList->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-          this,                               SLOT(onContainerSelectionChanged()));
+  connect(m_addFile,      SIGNAL(pressed()),
+          this,           SLOT(onFileAdd()));
+
+  connect(m_removeFile,   SIGNAL(pressed()),
+          this,           SLOT(onFileRemove()));
+
+  connect(m_about,        SIGNAL(pressed()),
+          this,           SLOT(showAboutDialog()));
+
+  connect(m_quit,         SIGNAL(pressed()),
+          this,           SLOT(close()));
+
+  connect(m_scan,         SIGNAL(pressed()),
+          this,           SLOT(scanContainers()));
+
+  connect(m_extract,      SIGNAL(pressed()),
+          this,           SLOT(extractFiles()));
+
+  connect(m_cancel,       SIGNAL(pressed()),
+          this,           SLOT(cancelScan()));
+
+  connect(m_size,         SIGNAL(stateChanged(int)),
+          this,           SLOT(onSizeStateChange(int)));
+
+  connect(m_time,         SIGNAL(stateChanged(int)),
+          this,           SLOT(onTimeStateChange(int)));
+
+  connect(m_volumeSlider, SIGNAL(valueChanged(int)),
+          this,           SLOT(onVolumeChanged(int)));
 }
 
 //----------------------------------------------------------------
 void OGGExtractor::onFileAdd()
 {
-  auto containers = QFileDialog::getOpenFileNames(centralWidget(), tr("Add container files to scan"), QDir::currentPath(), QString(), nullptr, QFileDialog::Option::ReadOnly);
+  static auto path = QDir::currentPath();
+  auto containers  = QFileDialog::getOpenFileNames(centralWidget(),
+                                                   tr("Add container files to scan"),
+                                                   path,
+                                                   QString(),
+                                                   nullptr,
+                                                   QFileDialog::Option::ReadOnly);
 
   if(!containers.empty())
   {
@@ -97,6 +143,9 @@ void OGGExtractor::onFileAdd()
 
     auto model = qobject_cast<QStringListModel *>(m_containersList->model());
     model->setStringList(m_containers);
+
+    QFileInfo file{containers.first()};
+    path = file.absolutePath();
   }
 
   m_scan->setEnabled(!m_containers.isEmpty());
@@ -126,6 +175,8 @@ void OGGExtractor::onFileRemove()
     positions.erase(positions.begin());
   }
 
+  m_removeFile->setEnabled(!m_containers.isEmpty());
+
   auto model = qobject_cast<QStringListModel *>(m_containersList->model());
   model->setStringList(m_containers);
 
@@ -149,7 +200,7 @@ void OGGExtractor::onContainerSelectionChanged()
 //----------------------------------------------------------------
 void OGGExtractor::showAboutDialog()
 {
-  AboutDialog dialog;
+  AboutDialog dialog{centralWidget()};
   dialog.exec();
 }
 
@@ -158,16 +209,25 @@ void OGGExtractor::cancelScan()
 {
   m_cancelProcess = true;
 
-  m_cancel->hide();
-  m_progress->hide();
+  m_cancel->setEnabled(false);
+  m_progress->setEnabled(false);
 }
 
 //----------------------------------------------------------------
 void OGGExtractor::scanContainers()
 {
   startProcess();
+  m_scan->setEnabled(false);
+  m_extract->setEnabled(false);
+
+  if(m_audio)
+  {
+    stopBuffer();
+  }
 
   m_filesTable->clearContents();
+  m_filesTable->model()->removeRows(0, m_filesTable->rowCount());
+  m_soundFiles.clear();
 
   auto buffer = new char[BUFFER_SIZE];
 
@@ -281,9 +341,9 @@ void OGGExtractor::scanContainers()
               endFound = false;
 
               long long size = oggEnding - oggBeginning;
-              if (size < (m_minimum->value() * 1024))
+              if (m_size->isChecked() && (size < (m_minimumSize->value() * 1024)))
               {
-                // skip file
+                // skip file because size
                 continue;
               }
 
@@ -291,6 +351,14 @@ void OGGExtractor::scanContainers()
               data.container = filename;
               data.start     = oggBeginning;
               data.end       = oggEnding;
+
+              auto time = oggTime(data);
+
+              if(m_time->isChecked() && (static_cast<int>(time) < m_minimumTime->value()))
+              {
+                // skip file because duration
+                continue;
+              }
 
               m_soundFiles << data;
 
@@ -313,6 +381,7 @@ void OGGExtractor::scanContainers()
 
   delete [] buffer;
 
+  m_scan->setEnabled(true);
   endProcess();
 
   m_filesTable->setEnabled(!m_soundFiles.isEmpty());
@@ -329,6 +398,8 @@ void OGGExtractor::extractFiles()
   if(destination.isEmpty()) return;
 
   startProcess();
+
+  auto numberLength = QString::number(m_soundFiles.size() + 1).length();
 
   for(int i = 0; i < m_soundFiles.size() && !m_cancelProcess; ++i)
   {
@@ -347,13 +418,22 @@ void OGGExtractor::extractFiles()
 
     if(checkBox->isChecked())
     {
+      auto name = qobject_cast<QLineEdit *>(m_filesTable->cellWidget(i, 1))->text();
+
+      // play safe with names, only common characters to avoid unicode.
+      name = name.replace(QRegExp("[^a-zA-Z0-9_- ]"),QString(""));
+      if(name.isEmpty())
+      {
+        name = tr("found_ogg_%1").arg(i+1);
+      }
+
       QDir dir(destination);
-      QFile file(dir.absoluteFilePath(tr("found_ogg_%1.ogg").arg(i, 6, 10, QChar('0'))));
+      QFile file(dir.absoluteFilePath(tr("%1 - %2.ogg").arg(i + 1, numberLength, 10, QChar('0')).arg(name)));
 
       if(!file.open(QFile::Truncate|QFile::WriteOnly))
       {
         errorDialog(tr("Couldn't create file '%1'").arg(file.fileName()), tr("Error: %1").arg(file.errorString()));
-        return;
+        continue;
       }
 
       QFile source(data.container);
@@ -386,7 +466,13 @@ void OGGExtractor::extractFiles()
 //----------------------------------------------------------------
 void OGGExtractor::onSizeStateChange(int value)
 {
-  m_minimum->setEnabled(value == Qt::Checked);
+  m_minimumSize->setEnabled(value == Qt::Checked);
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::onTimeStateChange(int value)
+{
+  m_minimumTime->setEnabled(value == Qt::Checked);
 }
 
 //----------------------------------------------------------------
@@ -411,7 +497,7 @@ void OGGExtractor::checkSelectedFiles()
 //----------------------------------------------------------------
 void OGGExtractor::insertDataInTable(const OGGData& data)
 {
-  auto row = m_soundFiles.size() - 1;
+  auto row = m_filesTable->rowCount();
   m_filesTable->insertRow(row);
 
   auto widget = new QWidget();
@@ -426,8 +512,9 @@ void OGGExtractor::insertDataInTable(const OGGData& data)
   widget->setLayout(layout);
   m_filesTable->setCellWidget(row,0,widget);
 
-  auto name = new QLabel(tr("found_ogg_%1").arg(row, 6, 10, QChar('0')));
+  auto name = new QLineEdit(tr("found_ogg_%1").arg(row+1));
   name->setAlignment(Qt::AlignCenter);
+  name->setFrame(false);
   m_filesTable->setCellWidget(row,1, name);
 
   auto containerName = data.container.split('/').last().split('.').first();
@@ -444,14 +531,15 @@ void OGGExtractor::insertDataInTable(const OGGData& data)
   widget = new QWidget();
   auto button = new QPushButton(QIcon(":/OGGExtractor/play.svg"), "");
   button->setFixedSize(24,24);
+
+  connect(button, SIGNAL(pressed()), this, SLOT(onPlayButtonPressed()));
+
   layout = new QHBoxLayout(widget);
   layout->addWidget(button);
   layout->setAlignment(Qt::AlignCenter);
   layout->setContentsMargins(0,0,0,0);
   widget->setLayout(layout);
   m_filesTable->setCellWidget(row,4,widget);
-
-
 }
 
 //----------------------------------------------------------------
@@ -481,8 +569,8 @@ void OGGExtractor::startProcess()
   m_removeFile->setEnabled(false);
 
   m_progress->setValue(0);
-  m_progress->show();
-  m_cancel->show();
+  m_progress->setEnabled(true);
+  m_cancel->setEnabled(true);
 }
 
 //----------------------------------------------------------------
@@ -497,8 +585,8 @@ void OGGExtractor::endProcess()
   onContainerSelectionChanged();
 
   m_progress->setValue(0);
-  m_progress->hide();
-  m_cancel->hide();
+  m_progress->setEnabled(false);
+  m_cancel->setEnabled(false);
 }
 
 //----------------------------------------------------------------
@@ -550,4 +638,199 @@ unsigned int OGGExtractor::oggTime(const OGGData& data) const
   }
 
   return result;
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::onPlayButtonPressed()
+{
+  auto button = qobject_cast<QPushButton *>(sender());
+  Q_ASSERT(button);
+
+  long int index = -1;
+  for(int i = 0; i < m_soundFiles.size(); ++i)
+  {
+    auto entryButton = qobject_cast<QPushButton *>(m_filesTable->cellWidget(i, 4)->layout()->itemAt(0)->widget());
+
+    if(entryButton == button)
+    {
+      index = i;
+      break;
+    }
+  }
+
+  Q_ASSERT(index != -1);
+
+  if(button == m_playButton)
+  {
+    stopBuffer();
+    return;
+  }
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  // stop current playing sample, if any.
+  stopBuffer();
+
+  button->setIcon(QIcon(":/OGGExtractor/stop.svg"));
+
+  m_playButton = button;
+
+  auto data = m_soundFiles.at(index);
+  m_sample = decodeOGG(data);
+
+  if(!m_sample) return;
+
+  playBufffer(m_sample, data);
+
+  QApplication::restoreOverrideCursor();
+}
+
+//----------------------------------------------------------------
+std::shared_ptr<QByteArray> OGGExtractor::decodeOGG(OGGData& data)
+{
+  std::shared_ptr<QByteArray> result = nullptr;
+
+  OGGContainerWrapper wrapper{data};
+
+  ov_callbacks callbacks;
+  callbacks.read_func  = OGGWrapper::read;
+  callbacks.seek_func  = OGGWrapper::seek;
+  callbacks.close_func = OGGWrapper::close;
+  callbacks.tell_func  = OGGWrapper::tell;
+
+  OggVorbis_File oggFile;
+
+  auto ov_result = ov_open_callbacks(reinterpret_cast<void *>(&wrapper), &oggFile, nullptr, 0, callbacks);
+
+  if(ov_result != 0)
+  {
+    auto error = tr("Couldn't register OGG callbacks.");
+    QString details;
+    switch(ov_result)
+    {
+      case OV_EREAD:
+        details = tr("A read from media returned an error.");
+        break;
+      case OV_ENOTVORBIS:
+        details = tr("Bitstream does not contain any Vorbis data.");
+        break;
+      case OV_EVERSION:
+        details = tr("Vorbis version mismatch.");
+        break;
+      case OV_EBADHEADER:
+        details = tr("Invalid Vorbis bitstream header.");
+        break;
+      case OV_EFAULT:
+        details = tr("Internal logic fault; indicates a bug or heap/stack corruption.");
+        break;
+      default:
+        details = tr("Unknown error.");
+    }
+
+    errorDialog(error, details);
+
+    return result;
+  }
+
+  auto info        = ov_info(&oggFile, 0);
+  data.channels    = info->channels;
+  data.rate        = info->rate;
+  auto decodeSize  = ov_pcm_total(&oggFile,-1) * 4 + 256;
+
+  result = std::make_shared<QByteArray>();
+  result->resize(decodeSize);
+
+  int section = 0;
+  bool eof = false;
+  auto ptr = result->data();
+  while (!eof)
+  {
+    auto decoded = ov_read(&oggFile, ptr, decodeSize-(ptr-result->data()), 0, 2, 1, &section);
+    if(decoded == 0)
+    {
+      eof = true;
+    }
+    else
+    {
+      if(decoded < 0)
+      {
+        errorDialog(tr("Error during OGG file decoding."));
+        result = nullptr;
+        break;
+      }
+      else
+      {
+        ptr += decoded;
+      }
+    }
+  }
+
+  ov_clear(&oggFile);
+
+  return result;
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::playBufffer(std::shared_ptr<QByteArray> pcmBuffer, const OGGData &data)
+{
+  QAudioFormat format;
+  format.setChannelCount(data.channels);
+  format.setSampleRate(data.rate);
+  format.setByteOrder(QAudioFormat::LittleEndian);
+  format.setSampleSize(16);
+  format.setCodec("audio/pcm");
+  format.setSampleType(QAudioFormat::SampleType::UnSignedInt);
+
+  m_buffer = std::make_shared<QBuffer>(pcmBuffer.get());
+  m_buffer->open(QIODevice::ReadOnly);
+  m_buffer->seek(0);
+
+  QAudioDeviceInfo audioinfo(QAudioDeviceInfo::defaultOutputDevice());
+  if (!audioinfo.isFormatSupported(format))
+  {
+    errorDialog(tr("Raw audio format not supported, cannot play audio."));
+    stopBuffer();
+    return;
+  }
+
+  m_audio = std::make_shared<QAudioOutput>(format, this);
+  m_audio->setVolume(m_volume);
+
+  m_audio->start(m_buffer.get());
+
+  connect(m_audio.get(), SIGNAL(stateChanged(QAudio::State)), this, SLOT(stopBuffer()));
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::stopBuffer()
+{
+  if(!m_audio || !m_playButton) return;
+
+  m_playButton->setIcon(QIcon(":/OGGExtractor/play.svg"));
+  m_playButton = nullptr;
+
+  if (m_audio)
+  {
+    m_audio->stop();
+    disconnect(m_audio.get(), SIGNAL(stateChanged(QAudio::State)), this, SLOT(stopBuffer()));
+  }
+
+  m_audio = nullptr;
+  m_buffer = nullptr;
+  m_sample = nullptr;
+
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::onVolumeChanged(int value)
+{
+  if(m_volume == value) return;
+
+  m_volume = value/100.0;
+  m_volumeLabel->setText(tr("%1 %").arg(value));
+
+  if(m_audio)
+  {
+    m_audio->setVolume(m_volume);
+  }
 }

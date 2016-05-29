@@ -7,20 +7,8 @@
     <x>0</x>
     <y>0</y>
     <width>397</width>
-    <height>287</height>
+    <height>308</height>
    </rect>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>397</width>
-    <height>287</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>397</width>
-    <height>287</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>About...</string>
@@ -281,8 +269,7 @@ Qt Framework</string>
                </font>
               </property>
               <property name="text">
-               <string>Xiph.Org OGG libraries
-libvorbis</string>
+               <string>Xiph.Org OGG libraries</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -292,7 +279,7 @@ libvorbis</string>
             <item>
              <widget class="QLabel" name="label_11">
               <property name="text">
-               <string>version 1.3.5</string>
+               <string>&lt;span style=&quot; font-weight:600;&quot;&gt;libvorbis &lt;/span&gt;version 1.3.5&lt;br&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;libogg&lt;/span&gt; version 1.3.2</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>

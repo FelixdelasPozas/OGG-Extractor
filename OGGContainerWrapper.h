@@ -31,6 +31,10 @@ struct OGGData
   QString container;        /** container file name.              */
   unsigned long long start; /** start position in container file. */
   unsigned long long end;   /** end position in container file.   */
+  int channels;             /** number of channels of OGG file.   */
+  int rate;                 /** sample rate of the OGG file.      */
+
+  OGGData(): container{""}, start{0}, end{0}, channels{0}, rate{0} {};
 };
 
 namespace OGGWrapper

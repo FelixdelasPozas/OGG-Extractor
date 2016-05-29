@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>593</height>
+    <height>543</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -41,6 +41,9 @@
        <widget class="QListView" name="m_containersList">
         <property name="toolTip">
          <string>Data files to be scanned for OGG files.</string>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
         </property>
        </widget>
       </item>
@@ -163,35 +166,96 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <layout class="QHBoxLayout" name="horizontalLayout_9">
       <item>
-       <widget class="QCheckBox" name="m_size">
-        <property name="toolTip">
-         <string>Don't show OGG files smaller than the given size.</string>
-        </property>
-        <property name="text">
-         <string>Do not show files smaller than</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="m_minimum">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="toolTip">
-         <string>Size in Kilobytes.</string>
-        </property>
-        <property name="suffix">
-         <string> Kb</string>
-        </property>
-        <property name="minimum">
-         <number>100</number>
-        </property>
-        <property name="maximum">
-         <number>999999999</number>
-        </property>
-       </widget>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="m_size">
+          <property name="toolTip">
+           <string>Don't show OGG files smaller than the given size.</string>
+          </property>
+          <property name="text">
+           <string>Do not show files smaller than</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="m_minimumTime">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="suffix">
+           <string> seconds</string>
+          </property>
+          <property name="minimum">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="m_time">
+          <property name="text">
+           <string>Do not show files with a duration less than</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="m_minimumSize">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Size in Kilobytes.</string>
+          </property>
+          <property name="suffix">
+           <string> Kb</string>
+          </property>
+          <property name="minimum">
+           <number>100</number>
+          </property>
+          <property name="maximum">
+           <number>999999999</number>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Playing Volume</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <item>
+           <widget class="QSlider" name="m_volumeSlider">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>100</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="m_volumeLabel">
+            <property name="text">
+             <string>100 %</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </item>
       <item>
        <spacer name="horizontalSpacer_2">

@@ -24,6 +24,17 @@
 // Project
 #include "OGGContainerWrapper.h"
 
+// C++
+#include <memory>
+
+// Qt
+#include <QAudio>
+
+class QByteArray;
+class QPushButton;
+class QBuffer;
+class QAudioOutput;
+
 /** \class OGGExtractor
  * \brief Main dialog class.
  *
@@ -88,10 +99,31 @@ class OGGExtractor
      */
     void onSizeStateChange(int value);
 
+    /** \brief Updates the UI when the state of the time checkbox changes.
+     * \param[in] value checkbox state.
+     *
+     */
+    void onTimeStateChange(int value);
+
     /** \brief Updates the extraction button when a OGG selection checkbox changes status.
      *
      */
     void checkSelectedFiles();
+
+    /** \brief Plays/stops the corresponding OGG file and updates the UI.
+     *
+     */
+    void onPlayButtonPressed();
+
+    /** \brief Stops the audio currently playing and frees the resources.
+     *
+     */
+    void stopBuffer();
+
+    /** \brief Updates audio and the UI with the new volume value.
+     * \param[in] value volume value in 0-100.
+     */
+    void onVolumeChanged(int value);
 
   private:
     /** \brief Helper method that connects the signals of the UI with its correspondent slots.
@@ -128,7 +160,28 @@ class OGGExtractor
      */
     unsigned int oggTime(const OGGData &data) const;
 
+    /** \brief Returns the decodec pcm data of the given OGG file.
+     * \param[in] data OGG file data.
+     *
+     * NOTE: this method fills the 'channels' and 'rate' fields of the OGGData struct.
+     *
+     */
+    std::shared_ptr<QByteArray> decodeOGG(OGGData &data);
+
+    /** \brief Plays the pcm buffer.
+     * \param[in] pcmBuffer pcm data to play.
+     * \param[in] data OGG file data.
+     *
+     */
+    void playBufffer(std::shared_ptr<QByteArray> pcmBuffer, const OGGData &data);
+
     QStringList    m_containers;    /** file names of the containers.               */
     QList<OGGData> m_soundFiles;    /** found OGG files information.                */
     bool           m_cancelProcess; /** true if current process has been cancelled. */
+    float          m_volume;        /** value of volume slider in [0-1]             */
+
+    QPushButton                  *m_playButton; /** button of a currently playing sound.                         */
+    std::shared_ptr<QByteArray>   m_sample;     /** raw buffer of currently playing sound.                       */
+    std::shared_ptr<QBuffer>      m_buffer;     /** QIODevice wrapper of a memory buffer, 'sample' in this case. */
+    std::shared_ptr<QAudioOutput> m_audio;      /** sound player.                                                */
 };
