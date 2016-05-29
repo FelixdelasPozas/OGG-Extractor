@@ -18,7 +18,8 @@ Tool to scan and extract OGG sound files from big game data files. This program 
 * 'Blood Omen 2' by Crystal Dynamics. 
 
 ## Options
-The tool can be configured to show only files with a minimum size making easier to identify music files from smaller dialog sound files. 
+The tool can be configured to show only files with a minimum size or duration, making it easier to differentiate music files from dialog ones. 
+The found OGG files can be renamed and played before the extraction process so it can be selected or deselected to be extracted. 
 
 # Compilation requirements
 ## To build the tool:
@@ -28,6 +29,7 @@ The tool can be configured to show only files with a minimum size making easier 
 ## External dependencies:
 The following libraries are required:
 * [Qt opensource framework](http://www.qt.io/).
+* [Xiph's vorbis and ogg libraries](https://www.xiph.org/).
 
 # Install
 The only current option is build from source as binaries are not provided. 
@@ -35,14 +37,10 @@ The only current option is build from source as binaries are not provided.
 # Screenshots
 Simple main dialog.
 
-![Main dialog](https://cloud.githubusercontent.com/assets/12167134/7867872/e2fd4c28-0578-11e5-93bb-56c7ee8b26df.jpg)
-
-Dialog shown while scanning for files.
-
-![Process Dialog](https://cloud.githubusercontent.com/assets/12167134/7867873/e48c0714-0578-11e5-8de4-ba1b44b1b72f.jpg)
+![Main dialog]()
 
 # Repository information
-**Version**: 1.4.0
+**Version**: 1.5.0
 
 **Status**: finished
 
@@ -50,7 +48,7 @@ Dialog shown while scanning for files.
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |   11          |  584        |    374           |2362  |
-| C/C++ Header                 |   10          |  242        |    631           | 448  |
-| CMake                        |    1          |   19        |     11           |  90  |
-| **Total**                    |   **22**      |  **845**    |   **1016**       |**2900**|
+| C++                          |    4          |  218        |    108           | 735  |
+| C/C++ Header                 |    3          |   62        |    185           |  99  |
+| CMake                        |    1          |   18        |     12           |  59  |
+| **Total**                    |   **8**      |  **298**    |   **305**       |**893**|
