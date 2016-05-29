@@ -37,7 +37,7 @@ The only current option is build from source as binaries are not provided.
 # Screenshots
 Simple main dialog.
 
-![Main dialog]()
+![Main dialog](https://cloud.githubusercontent.com/assets/12167134/15631646/14edcc32-2574-11e6-8aff-13938efe0811.jpg)
 
 # Repository information
 **Version**: 1.5.0
