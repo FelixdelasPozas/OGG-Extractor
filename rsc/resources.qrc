@@ -6,10 +6,6 @@
 	<file>play.svg</file>
 	<file>stop.svg</file>
 	<file>information.svg</file>
-	<file>exit.svg</file>
-	<file>folder.svg</file>
-	<file>search.svg</file>
-	<file>stop.svg</file>
 	<file>qt.ico</file>
 	<file>XiphOrg.svg</file>
   </qresource>
