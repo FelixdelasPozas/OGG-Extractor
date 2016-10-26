@@ -16,6 +16,9 @@ Tool to scan and extract OGG sound files from big game data files. This program 
 * 'Hitman: Contracts' by Io Interactive.
 * 'Freedom Fighters' by Io Interactive. 
 * 'Blood Omen 2' by Crystal Dynamics. 
+* 'FEZ' by Polytron Corporation.
+
+It will probably work with any program that uses unencrypted OGG Vorbis audio files. 
 
 ## Options
 The tool can be configured to show only files with a minimum size or duration, making it easier to differentiate music files from dialog ones. 
