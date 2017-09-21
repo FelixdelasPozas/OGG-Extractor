@@ -35,7 +35,7 @@ The following libraries are required:
 * [Xiph's vorbis and ogg libraries](https://www.xiph.org/).
 
 # Install
-The only current option is build from source as binaries are not provided. 
+Download and execute the latest installer from the [releases](https://github.com/FelixdelasPozas/OGG-Extractor/releases) page. 
 
 # Screenshots
 Simple main dialog.
