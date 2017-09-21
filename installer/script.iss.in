@@ -1,0 +1,39 @@
+; Mingw64 Distribution Inno Setup File
+
+[Setup]
+AppName=OGG Extractor
+AppVersion=@OGG_EXTRACTOR_VERSION_MAJOR@.@OGG_EXTRACTOR_VERSION_MINOR@.@OGG_EXTRACTOR_VERSION_PATCH@
+DefaultDirName={pf64}\OGG Extractor
+DefaultGroupName=OGG Extractor
+OutputDir=@PROJECT_BINARY_DIR@
+AppComments=OGG Extractor
+AppContact=Felix de las Pozas Alvarez
+AppCopyright=(c)2017 Felix de las Pozas Alvarez
+AppPublisher=Felix de las Pozas Alvarez
+ArchitecturesAllowed=x64
+Compression=lzma2/ultra64
+CreateUninstallRegKey=yes
+Uninstallable=yes
+DisableFinishedPage=no
+DisableWelcomePage=no
+ChangesAssociations=no
+CloseApplications=yes
+UninstallDisplayIcon=@CMAKE_SOURCE_DIR@/rsc/application.ico
+UninstallDisplayName=OGG Extractor v@OGG_EXTRACTOR_VERSION_MAJOR@.@OGG_EXTRACTOR_VERSION_MINOR@.@OGG_EXTRACTOR_VERSION_PATCH@
+SourceDir=@PROJECT_BINARY_DIR@
+SetupIconFile=@CMAKE_SOURCE_DIR@/rsc/application.ico
+OutputBaseFilename=OGGExtractor_v@OGG_EXTRACTOR_VERSION_MAJOR@.@OGG_EXTRACTOR_VERSION_MINOR@.@OGG_EXTRACTOR_VERSION_PATCH@_Setup
+WizardImageFile=@CMAKE_SOURCE_DIR@/installer/image.bmp
+WizardSmallImageFile=@CMAKE_SOURCE_DIR@/installer/smallimage.bmp
+
+[Files]
+Source: "OGGExtractor.exe"; DestDir: "{app}";
+Source: "*.dll"; DestDir: "{app}";
+Source: "iconengines/*.*"; DestDir: "{app}/iconengines/";
+Source: "imageformats/*.*"; DestDir: "{app}/imageformats/";
+Source: "platforms/*.*"; DestDir: "{app}/platforms/";
+Source: "audio/*.*"; DestDir: "{app}/audio/";
+Source: "mediaservice/*.*"; DestDir: "{app}/mediaservice/";
+
+[Run]
+Filename: "{app}\OGGExtractor.exe"; Description: "Launch OGG Extractor"; Flags: postinstall nowait skipifsilent unchecked

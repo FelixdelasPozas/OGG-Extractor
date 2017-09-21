@@ -47,11 +47,13 @@ Simple main dialog.
 
 **Status**: finished
 
+**License**: GNU General Public License 3
+
 **cloc statistics**
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
 | C++                          |    4          |  218        |    108           | 735  |
 | C/C++ Header                 |    3          |   62        |    185           |  99  |
-| CMake                        |    1          |   18        |     12           |  59  |
+| CMake                        |    1          |   18        |     12           |  62  |
 | **Total**                    |   **8**      |  **298**    |   **305**       |**893**|

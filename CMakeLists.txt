@@ -23,6 +23,7 @@ set(LIBVORBIS_LIBRARIES   ${LIBVORBIS_LIBRARY_DIR}/libvorbisfile.a
                           ${LIBVORBIS_LIBRARY_DIR}/libvorbis.a)
                           
 #libogg
+set(LIBOGG_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libogg-1.3.2/include")
 set(LIBOGG_LIBRARY "D:/Desarrollo/Bibliotecas/libogg-1.3.2/src/.libs/libogg.a")
                           
 # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
@@ -38,6 +39,7 @@ endif (CMAKE_BUILD_TYPE MATCHES Debug)
 
 if(DEFINED MINGW)
   configure_file("${PROJECT_SOURCE_DIR}/resources.rc.in" "${PROJECT_BINARY_DIR}/resources.rc")
+  configure_file("${PROJECT_SOURCE_DIR}/installer/script.iss.in" "${PROJECT_BINARY_DIR}/script.iss")
   set(CORE_SOURCES ${CORE_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/resources.rc)
   set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
   enable_language(RC)
@@ -50,6 +52,7 @@ include_directories(
   ${CMAKE_BINARY_DIR}          # Generated .h files
   ${CMAKE_CURRENT_BINARY_DIR}  # For wrap/ui files
   ${LIBVORBIS_INCLUDE_DIR}
+  ${LIBOGG_INCLUDE_DIR}
   )
 
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -mwindows")

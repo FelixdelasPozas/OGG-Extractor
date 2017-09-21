@@ -735,7 +735,7 @@ std::shared_ptr<QByteArray> OGGExtractor::decodeOGG(OGGData& data)
   auto info        = ov_info(&oggFile, 0);
   data.channels    = info->channels;
   data.rate        = info->rate;
-  auto decodeSize  = ov_pcm_total(&oggFile,-1) * 4 + 256;
+  long decodeSize  = ov_pcm_total(&oggFile,-1) * 4 + 256;
 
   result = std::make_shared<QByteArray>();
   result->resize(decodeSize);
