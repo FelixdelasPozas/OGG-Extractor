@@ -17,6 +17,7 @@ Tool to scan and extract OGG sound files from big game data files. This program 
 * 'Freedom Fighters' by Io Interactive. 
 * 'Blood Omen 2' by Crystal Dynamics. 
 * 'FEZ' by Polytron Corporation.
+* 'The Chronicles Of Riddick: Escape From Butcher Bay' by Starbreeze Studios.
 
 It will probably work with any program that uses unencrypted OGG Vorbis audio files. 
 
@@ -43,7 +44,7 @@ Simple main dialog.
 ![Main dialog](https://cloud.githubusercontent.com/assets/12167134/15631646/14edcc32-2574-11e6-8aff-13938efe0811.jpg)
 
 # Repository information
-**Version**: 1.5.0
+**Version**: 1.6.0
 
 **Status**: finished
 
@@ -53,7 +54,7 @@ Simple main dialog.
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |    4          |  218        |    108           | 735  |
-| C/C++ Header                 |    3          |   62        |    185           |  99  |
-| CMake                        |    1          |   18        |     12           |  62  |
-| **Total**                    |   **8**      |  **298**    |   **305**       |**893**|
+| C++                          |    4          |  232        |    110           | 785  |
+| C/C++ Header                 |    3          |   62        |    185           | 105  |
+| CMake                        |    1          |   18        |     12           |  63  |
+| **Total**                    |   **8**      |  **312**    |   **307**       |**953**|

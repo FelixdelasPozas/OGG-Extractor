@@ -28,13 +28,15 @@
 
 struct OGGData
 {
-  QString container;        /** container file name.              */
-  unsigned long long start; /** start position in container file. */
-  unsigned long long end;   /** end position in container file.   */
-  int channels;             /** number of channels of OGG file.   */
-  int rate;                 /** sample rate of the OGG file.      */
+  QString            container; /** container file name.                       */
+  unsigned long long start;     /** start position in container file.          */
+  unsigned long long end;       /** end position in container file.            */
+  int                channels;  /** number of channels of OGG file.            */
+  int                rate;      /** sample rate of the OGG file.               */
+  unsigned int       duration;  /** file duration in seconds.                  */
+  QString            error;     /** empty on success, error message otherwise. */
 
-  OGGData(): container{""}, start{0}, end{0}, channels{0}, rate{0} {};
+  OGGData(): container{""}, start{0}, end{0}, channels{0}, rate{0}, duration{0} {};
 };
 
 namespace OGGWrapper
@@ -88,7 +90,6 @@ namespace OGGWrapper
       const OGGData m_data;     /** OGG file data.         */
       ogg_int64_t   m_position; /** current file position. */
   };
-
 
   /** \brief Callback methods as defined in ov_callbacks structure (vorbisfile.h line 39).
    *         In this case datasource will be our OGGContainerWrapper. The methods work as

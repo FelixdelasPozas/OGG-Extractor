@@ -34,6 +34,7 @@ class QByteArray;
 class QPushButton;
 class QBuffer;
 class QAudioOutput;
+class QWinTaskbarButton;
 
 /** \class OGGExtractor
  * \brief Main dialog class.
@@ -56,6 +57,9 @@ class OGGExtractor
      *
      */
     virtual ~OGGExtractor();
+
+  protected:
+    virtual void showEvent(QShowEvent *e) override final;
 
   private slots:
     /** \brief Opens a file selection dialog to select container files.
@@ -154,11 +158,11 @@ class OGGExtractor
      */
     void endProcess();
 
-    /** \brief Returns the time in seconds of the OGG file of the given data.
+    /** \brief Returns true if the file could be accessed and decoded, fills the relevant information in the OGGData struct.
      * \param[in] data OGG file data.
      *
      */
-    unsigned int oggTime(const OGGData &data) const;
+    bool oggInfo(OGGData &data) const;
 
     /** \brief Returns the decodec pcm data of the given OGG file.
      * \param[in] data OGG file data.
@@ -180,8 +184,9 @@ class OGGExtractor
     bool           m_cancelProcess; /** true if current process has been cancelled. */
     float          m_volume;        /** value of volume slider in [0-1]             */
 
-    QPushButton                  *m_playButton; /** button of a currently playing sound.                         */
-    std::shared_ptr<QByteArray>   m_sample;     /** raw buffer of currently playing sound.                       */
-    std::shared_ptr<QBuffer>      m_buffer;     /** QIODevice wrapper of a memory buffer, 'sample' in this case. */
-    std::shared_ptr<QAudioOutput> m_audio;      /** sound player.                                                */
+    QPushButton                  *m_playButton;    /** button of a currently playing sound.                         */
+    std::shared_ptr<QByteArray>   m_sample;        /** raw buffer of currently playing sound.                       */
+    std::shared_ptr<QBuffer>      m_buffer;        /** QIODevice wrapper of a memory buffer, 'sample' in this case. */
+    std::shared_ptr<QAudioOutput> m_audio;         /** sound player.                                                */
+    QWinTaskbarButton            *m_taskBarButton; /** taskbar progress widget.                                     */
 };

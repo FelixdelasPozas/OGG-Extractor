@@ -52,6 +52,20 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>OGG files found:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="m_streamsCount">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer_3">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -118,7 +132,7 @@
        <bool>true</bool>
       </property>
       <property name="columnCount">
-       <number>5</number>
+       <number>8</number>
       </property>
       <attribute name="verticalHeaderVisible">
        <bool>false</bool>
@@ -141,10 +155,12 @@
       </column>
       <column>
        <property name="text">
-        <string>Container</string>
+        <string>Channels</string>
        </property>
-       <property name="toolTip">
-        <string>Container of the file</string>
+      </column>
+      <column>
+       <property name="text">
+        <string>Rate</string>
        </property>
       </column>
       <column>
@@ -157,10 +173,23 @@
       </column>
       <column>
        <property name="text">
+        <string>Container</string>
+       </property>
+       <property name="toolTip">
+        <string>Container of the file</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
         <string>Play/Stop</string>
        </property>
        <property name="toolTip">
         <string>Sound file player</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Errors</string>
        </property>
       </column>
      </widget>

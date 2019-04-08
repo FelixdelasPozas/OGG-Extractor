@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 2.8.6)
 
 # Version Number
 set (OGG_EXTRACTOR_VERSION_MAJOR 1)
-set (OGG_EXTRACTOR_VERSION_MINOR 5)
+set (OGG_EXTRACTOR_VERSION_MINOR 6)
 set (OGG_EXTRACTOR_VERSION_PATCH 0)
 
 # Find includes in corresponding build directories
@@ -14,7 +14,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 # Find the QtWidgets library
-find_package(Qt5 COMPONENTS Widgets Multimedia)
+find_package(Qt5 COMPONENTS Widgets Multimedia WinExtras)
 
 #libvorbis
 set(LIBVORBIS_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.5/include")
@@ -83,6 +83,7 @@ set (CORE_SOURCES
 set(CORE_EXTERNAL_LIBS
   Qt5::Widgets
   Qt5::Multimedia
+  Qt5::WinExtras
   ${LIBVORBIS_LIBRARIES}
   ${LIBOGG_LIBRARY}
 )

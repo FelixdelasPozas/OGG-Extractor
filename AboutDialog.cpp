@@ -20,7 +20,11 @@
 // Project
 #include "AboutDialog.h"
 
-const QString VERSION = QString("version 1.5.0");
+// Ogg
+#include <vorbis/vorbisfile.h>
+#include <ogg/ogg.h>
+
+const QString VERSION = QString("version 1.6.0");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
@@ -35,4 +39,8 @@ AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
 
   m_compilationDate->setText(tr("Compiled on ") + compilation_date + compilation_time);
   m_version->setText(VERSION);
+
+  m_qtVersion->setText(tr("version %1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH));
+  const auto vorbisVersion = QString(vorbis_version_string()).split(" ").last();
+  m_vorbisVersion->setText(tr("<b>libVorbis</b> version %1<br><b>libOgg</b> version %2").arg(vorbisVersion).arg("1.3.2"));
 }

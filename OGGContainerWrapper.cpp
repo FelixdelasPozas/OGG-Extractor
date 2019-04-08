@@ -28,7 +28,7 @@ using namespace OGGWrapper;
 
 //----------------------------------------------------------------
 OGGWrapper::OGGContainerWrapper::OGGContainerWrapper(const OGGData& data)
-: m_data    {data}
+: m_data    (data)
 , m_position{0}
 {
 }

@@ -44,6 +44,9 @@
 #include <QStringListModel>
 #include <QTableWidget>
 #include <QToolButton>
+#include <QtWinExtras/QWinTaskbarButton>
+#include <QtWinExtras/QWinTaskbarProgress>
+#include <QDebug>
 
 const long long BUFFER_SIZE = 5242880; /** 5 MB size buffer.     */
 const char *OGG_HEADER = "OggS";       /** Ogg header signature. */
@@ -52,13 +55,14 @@ using namespace OGGWrapper;
 
 //----------------------------------------------------------------
 OGGExtractor::OGGExtractor(QWidget *parent, Qt::WindowFlags flags)
-: QMainWindow    {parent, flags}
+: QMainWindow    (parent, flags)
 , m_cancelProcess{false}
 , m_volume       {1.0}
 , m_playButton   {nullptr}
 , m_sample       {nullptr}
 , m_buffer       {nullptr}
 , m_audio        {nullptr}
+, m_taskBarButton{nullptr}
 {
   setupUi(this);
 
@@ -75,9 +79,12 @@ OGGExtractor::OGGExtractor(QWidget *parent, Qt::WindowFlags flags)
   m_filesTable->horizontalHeader()->setSectionsMovable(false);
   m_filesTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
   m_filesTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-  m_filesTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+  m_filesTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
   m_filesTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
   m_filesTable->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
+  m_filesTable->horizontalHeader()->setSectionResizeMode(5, QHeaderView::Stretch);
+  m_filesTable->horizontalHeader()->setSectionResizeMode(6, QHeaderView::ResizeToContents);
+  m_filesTable->horizontalHeader()->setSectionResizeMode(7, QHeaderView::ResizeToContents);
 
   connectSignals();
 }
@@ -211,6 +218,7 @@ void OGGExtractor::cancelScan()
 
   m_cancel->setEnabled(false);
   m_progress->setEnabled(false);
+  m_taskBarButton->progress()->setValue(0);
 }
 
 //----------------------------------------------------------------
@@ -240,6 +248,9 @@ void OGGExtractor::scanContainers()
     totalSize += file.size();
   }
 
+  if(totalSize == 0) return;
+
+  int progress = 0;
   for(auto filename: m_containers)
   {
     if(m_cancelProcess) break;
@@ -266,6 +277,17 @@ void OGGExtractor::scanContainers()
 
     while (!eof)
     {
+      const int value = 100.0*(static_cast<double>(partialSize)/totalSize);
+      if(value != progress)
+      {
+        progress = value;
+        m_progress->setValue(progress);
+        m_taskBarButton->progress()->setValue(progress);
+        m_streamsCount->setText(tr("%1").arg(m_soundFiles.size()));
+
+        QApplication::processEvents();
+      }
+
       file.seek(processed);
 
       auto bytesRead = file.read(buffer, BUFFER_SIZE);
@@ -352,17 +374,17 @@ void OGGExtractor::scanContainers()
               data.start     = oggBeginning;
               data.end       = oggEnding;
 
-              auto time = oggTime(data);
+              oggInfo(data);
 
-              if(m_time->isChecked() && (static_cast<int>(time) < m_minimumTime->value()))
+              const auto time = data.duration;
+
+              if(data.error.isEmpty() && m_time->isChecked() && (static_cast<int>(time) < m_minimumTime->value()))
               {
                 // skip file because duration
                 continue;
               }
 
               m_soundFiles << data;
-
-              insertDataInTable(data);
             }
           }
         }
@@ -372,20 +394,19 @@ void OGGExtractor::scanContainers()
       partialSize += bytesRead;
 
       if (bytesRead < BUFFER_SIZE) eof = true;
-
-      auto value = 100.0*(static_cast<double>(partialSize)/totalSize);
-      m_progress->setValue(value);
-      QApplication::processEvents();
     }
   }
 
   delete [] buffer;
 
+  m_filesTable->setUpdatesEnabled(false);
+  std::for_each(m_soundFiles.constBegin(), m_soundFiles.constEnd(),[this](const OGGData &data){ insertDataInTable(data); });
+  m_filesTable->setUpdatesEnabled(true);
+
   m_scan->setEnabled(true);
   endProcess();
 
   m_filesTable->setEnabled(!m_soundFiles.isEmpty());
-  m_filesTable->adjustSize();
 
   m_extract->setEnabled(!m_soundFiles.isEmpty());
 }
@@ -403,7 +424,9 @@ void OGGExtractor::extractFiles()
 
   for(int i = 0; i < m_soundFiles.size() && !m_cancelProcess; ++i)
   {
-    m_progress->setValue(100.0*(static_cast<float>(i/m_soundFiles.size())));
+    const int progress = 100.0*(static_cast<float>(i/m_soundFiles.size()));
+    m_progress->setValue(progress);
+    m_taskBarButton->progress()->setValue(progress);
     QApplication::processEvents();
 
     auto data = m_soundFiles.at(i);
@@ -416,7 +439,7 @@ void OGGExtractor::extractFiles()
       return;
     }
 
-    if(checkBox->isChecked())
+    if(checkBox->isChecked() && data.error.isEmpty())
     {
       auto name = qobject_cast<QLineEdit *>(m_filesTable->cellWidget(i, 1))->text();
 
@@ -500,6 +523,8 @@ void OGGExtractor::insertDataInTable(const OGGData& data)
   auto row = m_filesTable->rowCount();
   m_filesTable->insertRow(row);
 
+  m_streamsCount->setText(tr("%1").arg(m_soundFiles.size()));
+
   auto widget = new QWidget();
   auto checkBox = new QCheckBox();
   checkBox->setChecked(true);
@@ -512,21 +537,29 @@ void OGGExtractor::insertDataInTable(const OGGData& data)
   widget->setLayout(layout);
   m_filesTable->setCellWidget(row,0,widget);
 
-  auto name = new QLineEdit(tr("found_ogg_%1").arg(row+1));
+  const auto name = new QLineEdit(tr("found_ogg_%1").arg(row+1));
   name->setAlignment(Qt::AlignCenter);
   name->setFrame(false);
   m_filesTable->setCellWidget(row,1, name);
 
-  auto containerName = data.container.split('/').last().split('.').first();
-  auto containerWidget = new QLabel(containerName);
-  containerWidget->setAlignment(Qt::AlignCenter);
-  m_filesTable->setCellWidget(row,2, containerWidget);
+  auto channelsWidget = new QLabel(tr("%1").arg(data.channels));
+  channelsWidget->setAlignment(Qt::AlignCenter);
+  m_filesTable->setCellWidget(row,2, channelsWidget);
 
-  auto seconds = oggTime(data);
-  auto time    = tr("%1:%2:%3").arg(seconds/3600, 2, 10, QChar('0')).arg(seconds/60, 2, 10, QChar('0')).arg(seconds%60, 2, 10, QChar('0'));
+  auto rateWidget = new QLabel(tr("%1").arg(data.rate));
+  rateWidget->setAlignment(Qt::AlignCenter);
+  m_filesTable->setCellWidget(row,3, rateWidget);
+
+  const auto seconds = data.duration;
+  const auto time    = tr("%1:%2:%3").arg(seconds/3600, 2, 10, QChar('0')).arg(seconds/60, 2, 10, QChar('0')).arg(seconds%60, 2, 10, QChar('0'));
   auto timeLabel = new QLabel{time};
   timeLabel->setAlignment(Qt::AlignCenter);
-  m_filesTable->setCellWidget(row,3, timeLabel);
+  m_filesTable->setCellWidget(row,4, timeLabel);
+
+  const auto containerName = data.container.split('/').last().split('.').first();
+  auto containerWidget = new QLabel(containerName);
+  containerWidget->setAlignment(Qt::AlignCenter);
+  m_filesTable->setCellWidget(row,5, containerWidget);
 
   widget = new QWidget();
   auto button = new QPushButton(QIcon(":/OGGExtractor/play.svg"), "");
@@ -539,7 +572,14 @@ void OGGExtractor::insertDataInTable(const OGGData& data)
   layout->setAlignment(Qt::AlignCenter);
   layout->setContentsMargins(0,0,0,0);
   widget->setLayout(layout);
-  m_filesTable->setCellWidget(row,4,widget);
+  m_filesTable->setCellWidget(row,6,widget);
+
+  widget->setEnabled(data.error.isEmpty());
+
+  const auto errors = data.error.isEmpty() ? tr("No error") : data.error;
+  auto errorWidget = new QLabel(errors);
+  errorWidget->setAlignment(Qt::AlignCenter);
+  m_filesTable->setCellWidget(row,7, errorWidget);
 }
 
 //----------------------------------------------------------------
@@ -570,6 +610,8 @@ void OGGExtractor::startProcess()
 
   m_progress->setValue(0);
   m_progress->setEnabled(true);
+  m_taskBarButton->progress()->setValue(0);
+  m_taskBarButton->progress()->setVisible(true);
   m_cancel->setEnabled(true);
 }
 
@@ -586,14 +628,16 @@ void OGGExtractor::endProcess()
 
   m_progress->setValue(0);
   m_progress->setEnabled(false);
+  m_taskBarButton->progress()->setValue(0);
+  m_taskBarButton->progress()->setVisible(false);
   m_cancel->setEnabled(false);
+
+  m_streamsCount->setText(tr("%1").arg(m_soundFiles.size()));
 }
 
 //----------------------------------------------------------------
-unsigned int OGGExtractor::oggTime(const OGGData& data) const
+bool OGGExtractor::oggInfo(OGGData& data) const
 {
-  unsigned int result = 0;
-
   OGGContainerWrapper wrapper{data};
   ov_callbacks callbacks;
   callbacks.read_func  = OGGWrapper::read;
@@ -607,37 +651,37 @@ unsigned int OGGExtractor::oggTime(const OGGData& data) const
 
   if(ov_result != 0)
   {
-    auto error = tr("Couldn't register OGG callbacks.");
-    QString details;
     switch(ov_result)
     {
       case OV_EREAD:
-        details = tr("A read from media returned an error.");
+        data.error = tr("A read from media returned an error.");
         break;
       case OV_ENOTVORBIS:
-        details = tr("Bitstream does not contain any Vorbis data.");
+        data.error = tr("Bitstream does not contain any Vorbis data.");
         break;
       case OV_EVERSION:
-        details = tr("Vorbis version mismatch.");
+        data.error = tr("Vorbis version mismatch.");
         break;
       case OV_EBADHEADER:
-        details = tr("Invalid Vorbis bitstream header.");
+        data.error = tr("Invalid Vorbis bitstream header.");
         break;
       case OV_EFAULT:
-        details = tr("Internal logic fault; indicates a bug or heap/stack corruption.");
+        data.error = tr("Internal logic fault; indicates a bug or heap/stack corruption.");
         break;
       default:
-        details = tr("Unknown error.");
+        data.error = tr("Unknown error.");
     }
 
-    errorDialog(error, details);
-  }
-  else
-  {
-    result = ov_time_total(&oggFile, -1);
+    return false;
   }
 
-  return result;
+  const auto info  = ov_info(&oggFile, 0);
+  data.channels    = info->channels;
+  data.rate        = info->rate;
+  data.duration    = ov_time_total(&oggFile, -1);
+  data.error       = QString();
+
+  return true;
 }
 
 //----------------------------------------------------------------
@@ -649,7 +693,7 @@ void OGGExtractor::onPlayButtonPressed()
   long int index = -1;
   for(int i = 0; i < m_soundFiles.size(); ++i)
   {
-    auto entryButton = qobject_cast<QPushButton *>(m_filesTable->cellWidget(i, 4)->layout()->itemAt(0)->widget());
+    auto entryButton = qobject_cast<QPushButton *>(m_filesTable->cellWidget(i, 6)->layout()->itemAt(0)->widget());
 
     if(entryButton == button)
     {
@@ -678,7 +722,12 @@ void OGGExtractor::onPlayButtonPressed()
   auto data = m_soundFiles.at(index);
   m_sample = decodeOGG(data);
 
-  if(!m_sample) return;
+  if(!m_sample && !data.error.isEmpty())
+  {
+    auto label = qobject_cast<QLabel *>(m_filesTable->cellWidget(index, 7)->layout()->itemAt(0)->widget());
+    if(label) label->setText(data.error);
+    return;
+  }
 
   playBufffer(m_sample, data);
 
@@ -689,6 +738,7 @@ void OGGExtractor::onPlayButtonPressed()
 std::shared_ptr<QByteArray> OGGExtractor::decodeOGG(OGGData& data)
 {
   std::shared_ptr<QByteArray> result = nullptr;
+  if(!data.error.isEmpty()) return result;
 
   OGGContainerWrapper wrapper{data};
 
@@ -704,38 +754,35 @@ std::shared_ptr<QByteArray> OGGExtractor::decodeOGG(OGGData& data)
 
   if(ov_result != 0)
   {
-    auto error = tr("Couldn't register OGG callbacks.");
-    QString details;
+    const auto error = tr("Couldn't register OGG callbacks.");
+
     switch(ov_result)
     {
       case OV_EREAD:
-        details = tr("A read from media returned an error.");
+        data.error = tr("A read from media returned an error.");
         break;
       case OV_ENOTVORBIS:
-        details = tr("Bitstream does not contain any Vorbis data.");
+        data.error = tr("Bitstream does not contain any Vorbis data.");
         break;
       case OV_EVERSION:
-        details = tr("Vorbis version mismatch.");
+        data.error = tr("Vorbis version mismatch.");
         break;
       case OV_EBADHEADER:
-        details = tr("Invalid Vorbis bitstream header.");
+        data.error = tr("Invalid Vorbis bitstream header.");
         break;
       case OV_EFAULT:
-        details = tr("Internal logic fault; indicates a bug or heap/stack corruption.");
+        data.error = tr("Internal logic fault; indicates a bug or heap/stack corruption.");
         break;
       default:
-        details = tr("Unknown error.");
+        data.error = tr("Unknown error.");
     }
 
-    errorDialog(error, details);
+    errorDialog(error, data.error);
 
     return result;
   }
 
-  auto info        = ov_info(&oggFile, 0);
-  data.channels    = info->channels;
-  data.rate        = info->rate;
-  long decodeSize  = ov_pcm_total(&oggFile,-1) * 4 + 256;
+  const long decodeSize = ov_pcm_total(&oggFile,-1) * 4 + 256;
 
   result = std::make_shared<QByteArray>();
   result->resize(decodeSize);
@@ -771,6 +818,17 @@ std::shared_ptr<QByteArray> OGGExtractor::decodeOGG(OGGData& data)
 }
 
 //----------------------------------------------------------------
+void OGGExtractor::showEvent(QShowEvent* e)
+{
+  QMainWindow::showEvent(e);
+
+  m_taskBarButton = new QWinTaskbarButton(this);
+  m_taskBarButton->setWindow(this->windowHandle());
+  m_taskBarButton->progress()->setRange(0,100);
+  m_taskBarButton->progress()->setVisible(false);
+}
+
+//----------------------------------------------------------------
 void OGGExtractor::playBufffer(std::shared_ptr<QByteArray> pcmBuffer, const OGGData &data)
 {
   QAudioFormat format;
@@ -779,7 +837,7 @@ void OGGExtractor::playBufffer(std::shared_ptr<QByteArray> pcmBuffer, const OGGD
   format.setByteOrder(QAudioFormat::LittleEndian);
   format.setSampleSize(16);
   format.setCodec("audio/pcm");
-  format.setSampleType(QAudioFormat::SampleType::UnSignedInt);
+  format.setSampleType(QAudioFormat::SampleType::SignedInt);
 
   m_buffer = std::make_shared<QBuffer>(pcmBuffer.get());
   m_buffer->open(QIODevice::ReadOnly);
