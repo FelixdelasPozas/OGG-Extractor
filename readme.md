@@ -41,7 +41,7 @@ Download and execute the latest installer from the [releases](https://github.com
 # Screenshots
 Simple main dialog.
 
-![Main dialog](https://cloud.githubusercontent.com/assets/12167134/15631646/14edcc32-2574-11e6-8aff-13938efe0811.jpg)
+![Main dialog](https://user-images.githubusercontent.com/12167134/55731451-8a73b880-5a1a-11e9-9343-712513c41f1d.jpg)
 
 # Repository information
 **Version**: 1.6.0
