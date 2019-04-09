@@ -18,6 +18,7 @@ Tool to scan and extract OGG sound files from big game data files. This program 
 * 'Blood Omen 2' by Crystal Dynamics. 
 * 'FEZ' by Polytron Corporation.
 * 'The Chronicles Of Riddick: Escape From Butcher Bay' by Starbreeze Studios.
+* 'The Chronicles Of Riddick: Assault On Dark Athena' by Starbreeze Studios.
 
 It will probably work with any program that uses unencrypted OGG Vorbis audio files. 
 
