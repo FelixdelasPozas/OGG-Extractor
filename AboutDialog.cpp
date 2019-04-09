@@ -24,7 +24,7 @@
 #include <vorbis/vorbisfile.h>
 #include <ogg/ogg.h>
 
-const QString VERSION = QString("version 1.6.0");
+const QString VERSION = QString("version 1.7.0");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)

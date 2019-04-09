@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 2.8.6)
 
 # Version Number
 set (OGG_EXTRACTOR_VERSION_MAJOR 1)
-set (OGG_EXTRACTOR_VERSION_MINOR 6)
+set (OGG_EXTRACTOR_VERSION_MINOR 7)
 set (OGG_EXTRACTOR_VERSION_PATCH 0)
 
 # Find includes in corresponding build directories
@@ -78,6 +78,7 @@ set (CORE_SOURCES
   OGGExtractor.cpp
   AboutDialog.cpp
   OGGContainerWrapper.cpp
+  ScanThread.cpp
 )
 
 set(CORE_EXTERNAL_LIBS

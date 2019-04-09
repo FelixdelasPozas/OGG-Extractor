@@ -44,7 +44,7 @@ Simple main dialog.
 ![Main dialog](https://user-images.githubusercontent.com/12167134/55731451-8a73b880-5a1a-11e9-9343-712513c41f1d.jpg)
 
 # Repository information
-**Version**: 1.6.0
+**Version**: 1.7.0
 
 **Status**: finished
 
@@ -54,7 +54,7 @@ Simple main dialog.
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |    4          |  232        |    110           | 785  |
-| C/C++ Header                 |    3          |   62        |    185           | 105  |
-| CMake                        |    1          |   18        |     12           |  63  |
-| **Total**                    |   **8**      |  **312**    |   **307**       |**953**|
+| C++                          |    5          |  253        |    135           | 849  |
+| C/C++ Header                 |    4          |   85        |    248           | 147  |
+| CMake                        |    1          |   18        |     12           |  64  |
+| **Total**                    |   **10**      |  **356**    |   **395**        |**1060**|

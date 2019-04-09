@@ -23,6 +23,7 @@
 
 // Project
 #include "OGGContainerWrapper.h"
+#include "ScanThread.h"
 
 // C++
 #include <memory>
@@ -129,6 +130,24 @@ class OGGExtractor
      */
     void onVolumeChanged(int value);
 
+    /** \brief Gets the found containers and frees the thread.
+     *
+     */
+    void onThreadFinished();
+
+    /** \brief Shows a dialog with the error message.
+     * \param[in] message Error message.
+     * \param[in] details Error details.
+     *
+     */
+    void onErrorSignaled(const QString message, const QString details);
+
+    /** \brief Updats the progress value.
+     * \param[in] value Progress value in [0,100].
+     *
+     */
+    void onProgressSignaled(int value);
+
   private:
     /** \brief Helper method that connects the signals of the UI with its correspondent slots.
      *
@@ -189,4 +208,5 @@ class OGGExtractor
     std::shared_ptr<QBuffer>      m_buffer;        /** QIODevice wrapper of a memory buffer, 'sample' in this case. */
     std::shared_ptr<QAudioOutput> m_audio;         /** sound player.                                                */
     QWinTaskbarButton            *m_taskBarButton; /** taskbar progress widget.                                     */
+    std::shared_ptr<ScanThread>   m_thread;        /** thread for scanning containers.                              */
 };
