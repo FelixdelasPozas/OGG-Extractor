@@ -14,18 +14,31 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 # Find the QtWidgets library
-find_package(Qt5 COMPONENTS Widgets Multimedia WinExtras)
+find_package(Qt5 COMPONENTS Widgets Multimedia)
+
+if(WIN32)
+	find_package(Qt5 COMPONENTS WinExtras)
+endif()
 
 #libvorbis
-set(LIBVORBIS_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.5/include")
-set(LIBVORBIS_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.5/lib/.libs")
-set(LIBVORBIS_LIBRARIES   ${LIBVORBIS_LIBRARY_DIR}/libvorbisfile.a
-                          ${LIBVORBIS_LIBRARY_DIR}/libvorbis.a)
-                          
+if(WIN32)
+#set(LIBVORBIS_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.5/include")
+#set(LIBVORBIS_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.5/lib/.libs")
+#set(LIBVORBIS_LIBRARIES   ${LIBVORBIS_LIBRARY_DIR}/libvorbisfile.a
+#                          ${LIBVORBIS_LIBRARY_DIR}/libvorbis.a)
+else()
+find_library(LIBVORBISFILE_LIBRARY vorbisfile libvorbisfile libvorbisfile-3 )
+find_library(LIBVORBIS_LIBRARIES libvorbis )
+endif()
+
 #libogg
-set(LIBOGG_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libogg-1.3.2/include")
-set(LIBOGG_LIBRARY "D:/Desarrollo/Bibliotecas/libogg-1.3.2/src/.libs/libogg.a")
-                          
+if(WIN32)
+#set(LIBOGG_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libogg-1.3.2/include")
+#set(LIBOGG_LIBRARY "D:/Desarrollo/Bibliotecas/libogg-1.3.2/src/.libs/libogg.a")
+else()
+find_library(LIBOGG_LIBRARY libogg)
+endif()
+
 # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
 #add_definitions(${Qt5Widgets_DEFINITIONS})
 #add_definitions(${Qt5Multimedia_DEFINITIONS})
@@ -55,7 +68,11 @@ include_directories(
   ${LIBOGG_INCLUDE_DIR}
   )
 
+if(WIN32)
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -mwindows")
+else()
+set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11")
+endif()
 
 # Add Qt Resource files
 qt5_add_resources(RESOURCES
@@ -84,10 +101,13 @@ set (CORE_SOURCES
 set(CORE_EXTERNAL_LIBS
   Qt5::Widgets
   Qt5::Multimedia
-  Qt5::WinExtras
   ${LIBVORBIS_LIBRARIES}
-  ${LIBOGG_LIBRARY}
+  ${LIBVORBISFILE_LIBRARY}
+  ${LIBOGG_LIBRARIES}
 )
+if(WIN32)
+	set(CORE_EXTERNAL_LIBS ${CORE_EXTERNAL_LIBS} Qt5:WinExtras)
+endif()
 
 add_executable(OGGExtractor ${CORE_SOURCES})
 target_link_libraries (OGGExtractor ${CORE_EXTERNAL_LIBS})

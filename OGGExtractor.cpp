@@ -44,8 +44,10 @@
 #include <QStringListModel>
 #include <QTableWidget>
 #include <QToolButton>
+#ifdef Q_OS_WIN
 #include <QtWinExtras/QWinTaskbarButton>
 #include <QtWinExtras/QWinTaskbarProgress>
+#endif
 #include <QDebug>
 
 using namespace OGGWrapper;
@@ -59,7 +61,9 @@ OGGExtractor::OGGExtractor(QWidget *parent, Qt::WindowFlags flags)
 , m_sample       {nullptr}
 , m_buffer       {nullptr}
 , m_audio        {nullptr}
+#ifdef Q_OS_WIN
 , m_taskBarButton{nullptr}
+#endif
 , m_thread       {nullptr}
 {
   setupUi(this);
@@ -216,7 +220,9 @@ void OGGExtractor::cancelScan()
 
   m_cancel->setEnabled(false);
   m_progress->setEnabled(false);
+  #ifdef Q_OS_WIN
   m_taskBarButton->progress()->setValue(0);
+  #endif
 }
 
 //----------------------------------------------------------------
@@ -275,7 +281,9 @@ void OGGExtractor::extractFiles()
   {
     const int progress = 100.0*(static_cast<float>(i/m_soundFiles.size()));
     m_progress->setValue(progress);
+    #ifdef Q_OS_WIN
     m_taskBarButton->progress()->setValue(progress);
+    #endif
     QApplication::processEvents();
 
     auto data = m_soundFiles.at(i);
@@ -459,8 +467,10 @@ void OGGExtractor::startProcess()
 
   m_progress->setValue(0);
   m_progress->setEnabled(true);
+  #ifdef Q_OS_WIN
   m_taskBarButton->progress()->setValue(0);
   m_taskBarButton->progress()->setVisible(true);
+  #endif
   m_cancel->setEnabled(true);
 }
 
@@ -477,8 +487,10 @@ void OGGExtractor::endProcess()
 
   m_progress->setValue(0);
   m_progress->setEnabled(false);
+  #ifdef Q_OS_WIN
   m_taskBarButton->progress()->setValue(0);
   m_taskBarButton->progress()->setVisible(false);
+  #endif
   m_cancel->setEnabled(false);
 
   m_streamsCount->setText(tr("%1").arg(m_soundFiles.size()));
@@ -622,10 +634,12 @@ void OGGExtractor::showEvent(QShowEvent* e)
 {
   QMainWindow::showEvent(e);
 
+  #ifdef Q_OS_WIN
   m_taskBarButton = new QWinTaskbarButton(this);
   m_taskBarButton->setWindow(this->windowHandle());
   m_taskBarButton->progress()->setRange(0,100);
   m_taskBarButton->progress()->setVisible(false);
+  #endif
 }
 
 //----------------------------------------------------------------
@@ -719,7 +733,9 @@ void OGGExtractor::onThreadFinished()
 void OGGExtractor::onProgressSignaled(int value)
 {
   m_progress->setValue(value);
+  #ifdef Q_OS_WIN
   m_taskBarButton->progress()->setValue(value);
+  #endif
 
   auto task = qobject_cast<ScanThread *>(sender());
   if(task)
