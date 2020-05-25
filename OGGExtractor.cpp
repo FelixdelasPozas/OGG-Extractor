@@ -265,7 +265,10 @@ void OGGExtractor::scanContainers()
 
   m_thread->start();
 }
-
+QString OGGExtractor::getDefaultOutputFilename(const int i,const OGGData& data)
+{
+  return tr("%1 0x%2-0x%3 (%4)").arg(data.container.split('/').last().split('.').first()).arg(data.start, 0, 16).arg(data.end, 0, 16).arg(data.end - data.start); 
+}
 //----------------------------------------------------------------
 void OGGExtractor::extractFiles()
 {
@@ -304,11 +307,11 @@ void OGGExtractor::extractFiles()
       name = name.replace(QRegExp("[^a-zA-Z0-9_- ]"),QString(""));
       if(name.isEmpty())
       {
-        name = tr("found_ogg_%1").arg(i+1);
+        name = getDefaultOutputFilename(i+1,data);
       }
 
       QDir dir(destination);
-      QFile file(dir.absoluteFilePath(tr("%1 - %2.ogg").arg(i + 1, numberLength, 10, QChar('0')).arg(name)));
+      QFile file(dir.absoluteFilePath(tr("%1.ogg").arg(name)));
 
       if(!file.open(QFile::Truncate|QFile::WriteOnly))
       {
@@ -394,7 +397,7 @@ void OGGExtractor::insertDataInTable(const OGGData& data)
   widget->setLayout(layout);
   m_filesTable->setCellWidget(row,0,widget);
 
-  const auto name = new QLineEdit(tr("found_ogg_%1").arg(row+1));
+  const auto name = new QLineEdit(getDefaultOutputFilename(row+1,data));
   name->setAlignment(Qt::AlignCenter);
   name->setFrame(false);
   m_filesTable->setCellWidget(row,1, name);
