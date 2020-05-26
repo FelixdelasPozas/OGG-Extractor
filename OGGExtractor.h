@@ -209,4 +209,6 @@ class OGGExtractor
     std::shared_ptr<QAudioOutput> m_audio;         /** sound player.                                                */
     QWinTaskbarButton            *m_taskBarButton; /** taskbar progress widget.                                     */
     std::shared_ptr<ScanThread>   m_thread;        /** thread for scanning containers.                              */
+
+    QString getDefaultOutputFilename(const int i, const OGGData &data);
 };

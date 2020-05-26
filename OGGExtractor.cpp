@@ -44,8 +44,10 @@
 #include <QStringListModel>
 #include <QTableWidget>
 #include <QToolButton>
+#ifdef Q_OS_WIN
 #include <QtWinExtras/QWinTaskbarButton>
 #include <QtWinExtras/QWinTaskbarProgress>
+#endif
 #include <QDebug>
 
 using namespace OGGWrapper;
@@ -59,7 +61,9 @@ OGGExtractor::OGGExtractor(QWidget *parent, Qt::WindowFlags flags)
 , m_sample       {nullptr}
 , m_buffer       {nullptr}
 , m_audio        {nullptr}
+#ifdef Q_OS_WIN
 , m_taskBarButton{nullptr}
+#endif
 , m_thread       {nullptr}
 {
   setupUi(this);
@@ -216,7 +220,9 @@ void OGGExtractor::cancelScan()
 
   m_cancel->setEnabled(false);
   m_progress->setEnabled(false);
+  #ifdef Q_OS_WIN
   m_taskBarButton->progress()->setValue(0);
+  #endif
 }
 
 //----------------------------------------------------------------
@@ -259,7 +265,11 @@ void OGGExtractor::scanContainers()
 
   m_thread->start();
 }
-
+QString OGGExtractor::getDefaultOutputFilename(const int i,const OGGData& data)
+{
+  QFileInfo fileInfo(data.container);
+  return tr("%1 0x%2-0x%3 (%4)").arg(fileInfo.completeBaseName()).arg(data.start, 0, 16).arg(data.end, 0, 16).arg(data.end - data.start);
+}
 //----------------------------------------------------------------
 void OGGExtractor::extractFiles()
 {
@@ -275,7 +285,9 @@ void OGGExtractor::extractFiles()
   {
     const int progress = 100.0*(static_cast<float>(i/m_soundFiles.size()));
     m_progress->setValue(progress);
+    #ifdef Q_OS_WIN
     m_taskBarButton->progress()->setValue(progress);
+    #endif
     QApplication::processEvents();
 
     auto data = m_soundFiles.at(i);
@@ -296,11 +308,11 @@ void OGGExtractor::extractFiles()
       name = name.replace(QRegExp("[^a-zA-Z0-9_- ]"),QString(""));
       if(name.isEmpty())
       {
-        name = tr("found_ogg_%1").arg(i+1);
+        name = getDefaultOutputFilename(i+1,data);
       }
 
       QDir dir(destination);
-      QFile file(dir.absoluteFilePath(tr("%1 - %2.ogg").arg(i + 1, numberLength, 10, QChar('0')).arg(name)));
+      QFile file(dir.absoluteFilePath(tr("%1.ogg").arg(name)));
 
       if(!file.open(QFile::Truncate|QFile::WriteOnly))
       {
@@ -386,7 +398,7 @@ void OGGExtractor::insertDataInTable(const OGGData& data)
   widget->setLayout(layout);
   m_filesTable->setCellWidget(row,0,widget);
 
-  const auto name = new QLineEdit(tr("found_ogg_%1").arg(row+1));
+  const auto name = new QLineEdit(getDefaultOutputFilename(row+1,data));
   name->setAlignment(Qt::AlignCenter);
   name->setFrame(false);
   m_filesTable->setCellWidget(row,1, name);
@@ -404,8 +416,9 @@ void OGGExtractor::insertDataInTable(const OGGData& data)
   auto timeLabel = new QLabel{time};
   timeLabel->setAlignment(Qt::AlignCenter);
   m_filesTable->setCellWidget(row,4, timeLabel);
-
-  const auto containerName = data.container.split('/').last().split('.').first();
+  
+  QFileInfo fileInfo(data.container);
+  const auto containerName = fileInfo.completeBaseName();
   auto containerWidget = new QLabel(containerName);
   containerWidget->setAlignment(Qt::AlignCenter);
   m_filesTable->setCellWidget(row,5, containerWidget);
@@ -459,8 +472,10 @@ void OGGExtractor::startProcess()
 
   m_progress->setValue(0);
   m_progress->setEnabled(true);
+  #ifdef Q_OS_WIN
   m_taskBarButton->progress()->setValue(0);
   m_taskBarButton->progress()->setVisible(true);
+  #endif
   m_cancel->setEnabled(true);
 }
 
@@ -477,8 +492,10 @@ void OGGExtractor::endProcess()
 
   m_progress->setValue(0);
   m_progress->setEnabled(false);
+  #ifdef Q_OS_WIN
   m_taskBarButton->progress()->setValue(0);
   m_taskBarButton->progress()->setVisible(false);
+  #endif
   m_cancel->setEnabled(false);
 
   m_streamsCount->setText(tr("%1").arg(m_soundFiles.size()));
@@ -622,10 +639,12 @@ void OGGExtractor::showEvent(QShowEvent* e)
 {
   QMainWindow::showEvent(e);
 
+  #ifdef Q_OS_WIN
   m_taskBarButton = new QWinTaskbarButton(this);
   m_taskBarButton->setWindow(this->windowHandle());
   m_taskBarButton->progress()->setRange(0,100);
   m_taskBarButton->progress()->setVisible(false);
+  #endif
 }
 
 //----------------------------------------------------------------
@@ -719,7 +738,9 @@ void OGGExtractor::onThreadFinished()
 void OGGExtractor::onProgressSignaled(int value)
 {
   m_progress->setValue(value);
+  #ifdef Q_OS_WIN
   m_taskBarButton->progress()->setValue(value);
+  #endif
 
   auto task = qobject_cast<ScanThread *>(sender());
   if(task)
