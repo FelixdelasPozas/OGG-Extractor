@@ -21,8 +21,6 @@
 #include "AboutDialog.h"
 
 // Ogg
-//#include <vorbis/vorbisfile.h>
-//#include <ogg/ogg.h>
 #include <vorbis/codec.h>
 
 const QString VERSION = QString("version 1.7.0");
