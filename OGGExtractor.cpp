@@ -267,7 +267,8 @@ void OGGExtractor::scanContainers()
 }
 QString OGGExtractor::getDefaultOutputFilename(const int i,const OGGData& data)
 {
-  return tr("%1 0x%2-0x%3 (%4)").arg(data.container.split('/').last().split('.').first()).arg(data.start, 0, 16).arg(data.end, 0, 16).arg(data.end - data.start); 
+  QFileInfo fileInfo(data.container);
+  return tr("%1 0x%2-0x%3 (%4)").arg(fileInfo.completeBaseName()).arg(data.start, 0, 16).arg(data.end, 0, 16).arg(data.end - data.start);
 }
 //----------------------------------------------------------------
 void OGGExtractor::extractFiles()
@@ -415,8 +416,9 @@ void OGGExtractor::insertDataInTable(const OGGData& data)
   auto timeLabel = new QLabel{time};
   timeLabel->setAlignment(Qt::AlignCenter);
   m_filesTable->setCellWidget(row,4, timeLabel);
-
-  const auto containerName = data.container.split('/').last().split('.').first();
+  
+  QFileInfo fileInfo(data.container);
+  const auto containerName = fileInfo.completeBaseName();
   auto containerWidget = new QLabel(containerName);
   containerWidget->setAlignment(Qt::AlignCenter);
   m_filesTable->setCellWidget(row,5, containerWidget);
