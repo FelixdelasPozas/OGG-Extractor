@@ -268,7 +268,8 @@ void OGGExtractor::scanContainers()
 QString OGGExtractor::getDefaultOutputFilename(const int i,const OGGData& data)
 {
   QFileInfo fileInfo(data.container);
-  return tr("%1 0x%2-0x%3 (%4)").arg(fileInfo.completeBaseName()).arg(data.start, 0, 16).arg(data.end, 0, 16).arg(data.end - data.start);
+  auto fieldWidth = QString::number(fileInfo.size(),16).length();
+  return tr("%1 0x%2-0x%3 (%4)").arg(fileInfo.completeBaseName()).arg(data.start, fieldWidth, 16, QLatin1Char('0')).arg(data.end, fieldWidth, 16, QLatin1Char('0')).arg(data.end - data.start);
 }
 //----------------------------------------------------------------
 void OGGExtractor::extractFiles()

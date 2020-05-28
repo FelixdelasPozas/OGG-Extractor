@@ -68,10 +68,13 @@ include_directories(
   ${LIBOGG_INCLUDE_DIR}
   )
 
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
 if(WIN32)
-set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -mwindows")
+set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -mwindows")
 else()
-set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11")
+set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
 endif()
 
 # Add Qt Resource files
