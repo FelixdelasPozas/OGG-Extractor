@@ -90,13 +90,6 @@ class ScanThread
       virtual void run();
 
   private:
-      /** \brief Returns true if the file could be accessed and decoded, fills the relevant information in the OGGData struct.
-       * \param[in] data OGG file data.
-       *
-       */
-      bool oggInfo(OGGData &data) const;
-
-  private:
       const QStringList m_containers;      /** list of container files.                          */
       QList<OGGData>    m_streams;         /** found streams data.                               */
       bool              m_aborted;         /** true if aborted, false otherwise.                 */

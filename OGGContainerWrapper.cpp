@@ -19,10 +19,12 @@
 
 // Project
 #include "OGGContainerWrapper.h"
-#include "OGGExtractor.h"
 
-// Qt
-#include <QFile>
+// C++
+#include <fstream>
+#include <codecvt>
+#include <locale>
+#include <cassert>
 
 using namespace OGGWrapper;
 
@@ -36,11 +38,11 @@ OGGWrapper::OGGContainerWrapper::OGGContainerWrapper(const OGGData& data)
 //----------------------------------------------------------------
 size_t OGGWrapper::OGGContainerWrapper::read(void* ptr, size_t size, size_t nmemb)
 {
-  QFile container{m_data.container};
+  std::ifstream container{ws2s(m_data.container), std::ios_base::in|std::ios_base::binary};
 
-  if(!container.open(QFile::ReadOnly)) return 0;
+  if(!container.is_open()) return 0;
 
-  container.seek(m_data.start + m_position);
+  container.seekg(m_data.start + m_position);
 
   auto readSize = nmemb * size;
   auto fileSize = m_data.end-m_data.start;
@@ -52,11 +54,8 @@ size_t OGGWrapper::OGGContainerWrapper::read(void* ptr, size_t size, size_t nmem
 
   if(readSize > 0)
   {
-    auto data = container.read(readSize);
-
-    m_position += readSize;
-
-    memcpy(ptr, data.constData(), readSize);
+    container.read(reinterpret_cast<char *>(ptr), readSize);
+    m_position += container.gcount();
   }
 
   return readSize;
@@ -97,7 +96,7 @@ int OGGWrapper::OGGContainerWrapper::seek(ogg_int64_t offset, int whence)
       m_position = filesize + 1;
       break;
     default:
-      Q_ASSERT(false);
+      assert(false);
       break;
   };
 
@@ -120,7 +119,7 @@ long OGGWrapper::OGGContainerWrapper::tell()
 size_t OGGWrapper::read(void* ptr, size_t size, size_t nmemb, void* datasource)
 {
   auto wrapper = reinterpret_cast<OGGContainerWrapper *>(datasource);
-  if(!wrapper) Q_ASSERT(false);
+  if(!wrapper) assert(false);
 
   return wrapper->read(ptr, size, nmemb);
 }
@@ -129,7 +128,7 @@ size_t OGGWrapper::read(void* ptr, size_t size, size_t nmemb, void* datasource)
 int OGGWrapper::seek(void* datasource, ogg_int64_t offset, int whence)
 {
   auto wrapper = reinterpret_cast<OGGContainerWrapper *>(datasource);
-  if(!wrapper) Q_ASSERT(false);
+  if(!wrapper) assert(false);
 
   return wrapper->seek(offset, whence);
 }
@@ -138,7 +137,7 @@ int OGGWrapper::seek(void* datasource, ogg_int64_t offset, int whence)
 int OGGWrapper::close(void* datasource)
 {
   auto wrapper = reinterpret_cast<OGGContainerWrapper *>(datasource);
-  if(!wrapper) Q_ASSERT(false);
+  if(!wrapper) assert(false);
 
   return wrapper->close();
 }
@@ -147,7 +146,73 @@ int OGGWrapper::close(void* datasource)
 long OGGWrapper::tell(void* datasource)
 {
   auto wrapper = reinterpret_cast<OGGContainerWrapper *>(datasource);
-  if(!wrapper) Q_ASSERT(false);
+  if(!wrapper) assert(false);
 
   return wrapper->tell();
+}
+
+//----------------------------------------------------------------
+bool OGGWrapper::oggInfo(OGGData& data)
+{
+  OGGContainerWrapper wrapper{data};
+  ov_callbacks callbacks;
+  callbacks.read_func  = OGGWrapper::read;
+  callbacks.seek_func  = OGGWrapper::seek;
+  callbacks.close_func = OGGWrapper::close;
+  callbacks.tell_func  = OGGWrapper::tell;
+
+  OggVorbis_File oggFile;
+
+  auto ov_result = ov_open_callbacks(reinterpret_cast<void *>(&wrapper), &oggFile, nullptr, 0, callbacks);
+
+  if(ov_result != 0)
+  {
+    switch(ov_result)
+    {
+      case OV_EREAD:
+        data.error = std::string("A read from media returned an error.");
+        break;
+      case OV_ENOTVORBIS:
+        data.error = std::string("Bitstream does not contain any Vorbis data.");
+        break;
+      case OV_EVERSION:
+        data.error = std::string("Vorbis version mismatch.");
+        break;
+      case OV_EBADHEADER:
+        data.error = std::string("Invalid Vorbis bitstream header.");
+        break;
+      case OV_EFAULT:
+        data.error = std::string("Internal logic fault; indicates a bug or heap/stack corruption.");
+        break;
+      default:
+        data.error = std::string("Unknown error.");
+    }
+
+    return false;
+  }
+
+  const auto info  = ov_info(&oggFile, 0);
+  data.channels    = info->channels;
+  data.rate        = info->rate;
+  data.duration    = ov_time_total(&oggFile, -1);
+
+  return true;
+}
+
+//----------------------------------------------------------------
+std::wstring OGGWrapper::s2ws(const std::string& str)
+{
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+    return converterX.from_bytes(str);
+}
+
+//----------------------------------------------------------------
+std::string OGGWrapper::ws2s(const std::wstring& wstr)
+{
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+    return converterX.to_bytes(wstr);
 }

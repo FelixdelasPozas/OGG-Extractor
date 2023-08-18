@@ -187,15 +187,15 @@ void ScanThread::run()
               }
 
               OGGData data;
-              data.container = filename;
+              data.container = filename.toStdWString();
               data.start     = oggBeginning;
               data.end       = oggEnding;
 
-              oggInfo(data);
+              OGGWrapper::oggInfo(data);
 
               const auto time = data.duration;
 
-              if(data.error.isEmpty() && m_minimumDuration > 0 && (time < m_minimumDuration))
+              if(data.error.empty() && m_minimumDuration > 0 && (time < m_minimumDuration))
               {
                 // skip file because duration
                 continue;
@@ -215,53 +215,4 @@ void ScanThread::run()
   }
 
   delete [] buffer;
-}
-
-//----------------------------------------------------------------
-bool ScanThread::oggInfo(OGGData& data) const
-{
-  OGGContainerWrapper wrapper{data};
-  ov_callbacks callbacks;
-  callbacks.read_func  = OGGWrapper::read;
-  callbacks.seek_func  = OGGWrapper::seek;
-  callbacks.close_func = OGGWrapper::close;
-  callbacks.tell_func  = OGGWrapper::tell;
-
-  OggVorbis_File oggFile;
-
-  auto ov_result = ov_open_callbacks(reinterpret_cast<void *>(&wrapper), &oggFile, nullptr, 0, callbacks);
-
-  if(ov_result != 0)
-  {
-    switch(ov_result)
-    {
-      case OV_EREAD:
-        data.error = tr("A read from media returned an error.");
-        break;
-      case OV_ENOTVORBIS:
-        data.error = tr("Bitstream does not contain any Vorbis data.");
-        break;
-      case OV_EVERSION:
-        data.error = tr("Vorbis version mismatch.");
-        break;
-      case OV_EBADHEADER:
-        data.error = tr("Invalid Vorbis bitstream header.");
-        break;
-      case OV_EFAULT:
-        data.error = tr("Internal logic fault; indicates a bug or heap/stack corruption.");
-        break;
-      default:
-        data.error = tr("Unknown error.");
-    }
-
-    return false;
-  }
-
-  const auto info  = ov_info(&oggFile, 0);
-  data.channels    = info->channels;
-  data.rate        = info->rate;
-  data.duration    = ov_time_total(&oggFile, -1);
-  data.error       = QString();
-
-  return true;
 }

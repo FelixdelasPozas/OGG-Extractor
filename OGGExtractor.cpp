@@ -265,12 +265,14 @@ void OGGExtractor::scanContainers()
 
   m_thread->start();
 }
+
 QString OGGExtractor::getDefaultOutputFilename(const int i,const OGGData& data)
 {
-  QFileInfo fileInfo(data.container);
+  QFileInfo fileInfo(QString::fromStdWString(data.container));
   auto fieldWidth = QString::number(fileInfo.size(),16).length();
   return tr("%1 0x%2-0x%3 (%4)").arg(fileInfo.completeBaseName()).arg(data.start, fieldWidth, 16, QLatin1Char('0')).arg(data.end, fieldWidth, 16, QLatin1Char('0')).arg(data.end - data.start);
 }
+
 //----------------------------------------------------------------
 void OGGExtractor::extractFiles()
 {
@@ -279,8 +281,6 @@ void OGGExtractor::extractFiles()
   if(destination.isEmpty()) return;
 
   startProcess();
-
-  auto numberLength = QString::number(m_soundFiles.size() + 1).length();
 
   for(int i = 0; i < m_soundFiles.size() && !m_cancelProcess; ++i)
   {
@@ -301,7 +301,7 @@ void OGGExtractor::extractFiles()
       return;
     }
 
-    if(checkBox->isChecked() && data.error.isEmpty())
+    if(checkBox->isChecked() && data.error.empty())
     {
       auto name = qobject_cast<QLineEdit *>(m_filesTable->cellWidget(i, 1))->text();
 
@@ -321,11 +321,12 @@ void OGGExtractor::extractFiles()
         continue;
       }
 
-      QFile source(data.container);
+      const auto qContainer = QString::fromStdWString(data.container);
+      QFile source(qContainer);
 
       if(!source.open(QFile::ReadOnly))
       {
-        errorDialog(tr("Couldn't open container file '%1'").arg(data.container), tr("Error: %1").arg(source.errorString()));
+        errorDialog(tr("Couldn't open container file '%1'").arg(qContainer), tr("Error: %1").arg(source.errorString()));
         return;
       }
 
@@ -418,7 +419,7 @@ void OGGExtractor::insertDataInTable(const OGGData& data)
   timeLabel->setAlignment(Qt::AlignCenter);
   m_filesTable->setCellWidget(row,4, timeLabel);
   
-  QFileInfo fileInfo(data.container);
+  QFileInfo fileInfo(QString::fromStdWString(data.container));
   const auto containerName = fileInfo.completeBaseName();
   auto containerWidget = new QLabel(containerName);
   containerWidget->setAlignment(Qt::AlignCenter);
@@ -437,9 +438,9 @@ void OGGExtractor::insertDataInTable(const OGGData& data)
   widget->setLayout(layout);
   m_filesTable->setCellWidget(row,6,widget);
 
-  widget->setEnabled(data.error.isEmpty());
+  widget->setEnabled(data.error.empty());
 
-  const auto errors = data.error.isEmpty() ? tr("No error") : data.error;
+  const auto errors = data.error.empty() ? tr("No error") : QString::fromStdString(data.error);
   auto errorWidget = new QLabel(errors);
   errorWidget->setAlignment(Qt::AlignCenter);
   m_filesTable->setCellWidget(row,7, errorWidget);
@@ -540,10 +541,10 @@ void OGGExtractor::onPlayButtonPressed()
   auto data = m_soundFiles.at(index);
   m_sample = decodeOGG(data);
 
-  if(!m_sample && !data.error.isEmpty())
+  if(!m_sample && !data.error.empty())
   {
     auto label = qobject_cast<QLabel *>(m_filesTable->cellWidget(index, 7)->layout()->itemAt(0)->widget());
-    if(label) label->setText(data.error);
+    if(label) label->setText(QString::fromStdString(data.error));
     return;
   }
 
@@ -556,7 +557,7 @@ void OGGExtractor::onPlayButtonPressed()
 std::shared_ptr<QByteArray> OGGExtractor::decodeOGG(OGGData& data)
 {
   std::shared_ptr<QByteArray> result = nullptr;
-  if(!data.error.isEmpty()) return result;
+  if(!data.error.empty()) return result;
 
   OGGContainerWrapper wrapper{data};
 
@@ -577,25 +578,25 @@ std::shared_ptr<QByteArray> OGGExtractor::decodeOGG(OGGData& data)
     switch(ov_result)
     {
       case OV_EREAD:
-        data.error = tr("A read from media returned an error.");
+        data.error = std::string("A read from media returned an error.");
         break;
       case OV_ENOTVORBIS:
-        data.error = tr("Bitstream does not contain any Vorbis data.");
+        data.error = std::string("Bitstream does not contain any Vorbis data.");
         break;
       case OV_EVERSION:
-        data.error = tr("Vorbis version mismatch.");
+        data.error = std::string("Vorbis version mismatch.");
         break;
       case OV_EBADHEADER:
-        data.error = tr("Invalid Vorbis bitstream header.");
+        data.error = std::string("Invalid Vorbis bitstream header.");
         break;
       case OV_EFAULT:
-        data.error = tr("Internal logic fault; indicates a bug or heap/stack corruption.");
+        data.error = std::string("Internal logic fault; indicates a bug or heap/stack corruption.");
         break;
       default:
-        data.error = tr("Unknown error.");
+        data.error = std::string("Unknown error.");
     }
 
-    errorDialog(error, data.error);
+    errorDialog(error, QString::fromStdString(data.error));
 
     return result;
   }

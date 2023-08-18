@@ -24,19 +24,19 @@
 #include <vorbis/vorbisfile.h>
 
 // Qt
-#include <QString>
+#include <string>
 
 struct OGGData
 {
-  QString            container; /** container file name.                       */
+  std::wstring       container; /** container file name.                       */
   unsigned long long start;     /** start position in container file.          */
   unsigned long long end;       /** end position in container file.            */
   int                channels;  /** number of channels of OGG file.            */
   int                rate;      /** sample rate of the OGG file.               */
   unsigned int       duration;  /** file duration in seconds.                  */
-  QString            error;     /** empty on success, error message otherwise. */
+  std::string        error;     /** empty on success, error message otherwise. */
 
-  OGGData(): container{""}, start{0}, end{0}, channels{0}, rate{0}, duration{0} {};
+  OGGData(): start{0}, end{0}, channels{0}, rate{0}, duration{0} {};
 };
 
 namespace OGGWrapper
@@ -100,8 +100,25 @@ namespace OGGWrapper
   int seek(void *datasource, ogg_int64_t offset, int whence);
   int close(void *datasource);
   long tell(void *datasource);
+
+  /** \brief Returns true if the file could be accessed and decoded, fills the relevant information in the OGGData struct.
+   * \param[in] data OGG file data.
+   *
+   */
+  bool oggInfo(OGGData &data);
+
+  /** \brief Helper to convert string to wstring
+   * \param[in] str string to convert.
+   *
+   */
+  std::wstring s2ws(const std::string& str);
+
+  /** \brief Helper to convert wstring to string
+   * \param[in] wstr wstring to convert.
+   *
+   */
+  std::string ws2s(const std::wstring& wstr);
+
 }
-
-
 
 #endif // OGGCONTAINERWRAPPER_H_

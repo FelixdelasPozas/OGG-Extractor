@@ -23,7 +23,7 @@
 // Ogg
 #include <vorbis/codec.h>
 
-const QString VERSION = QString("version 1.7.0");
+const QString VERSION = QString("version 1.8.0");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
