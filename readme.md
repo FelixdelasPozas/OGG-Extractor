@@ -46,7 +46,7 @@ but the CLI version won't let you listen to or rename the found OGG streams befo
 command-line version are:
 
 | Option                       | Description   |
-|:-----------------------------|--------------:|
+|:-----------------------------|:--------------|
 | **-h**                       | Shows help.   |
 | **-s <number>**              | Filter found streams by size (in Kb). |
 | **-l <number>**              | Filter found streams by length in seconds. |
