@@ -28,6 +28,7 @@ WizardSmallImageFile=@CMAKE_SOURCE_DIR@/installer/smallimage.bmp
 
 [Files]
 Source: "OGGExtractor.exe"; DestDir: "{app}";
+Source: "OGGExtractor-cli.exe"; DestDir: "{app}";
 Source: "*.dll"; DestDir: "{app}";
 Source: "iconengines/*.*"; DestDir: "{app}/iconengines/";
 Source: "imageformats/*.*"; DestDir: "{app}/imageformats/";
