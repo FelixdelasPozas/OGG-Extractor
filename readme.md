@@ -63,6 +63,9 @@ and range can produce no files being extracted.
 Simple main dialog.
 
 ![Main dialog](https://user-images.githubusercontent.com/12167134/55731451-8a73b880-5a1a-11e9-9343-712513c41f1d.jpg)
+
+Command-line version
+
 ![CLI version](https://user-images.githubusercontent.com/12167134/261821158-19554381-b7c6-4d94-8353-095ccf02b0bc.png)
 
 # Repository information
