@@ -44,15 +44,19 @@ Download and execute the latest installer from the [releases](https://github.com
 A command-line version of the application is included as an executable ending in "-cli". The filtering options are the same, 
 but the CLI version won't let you listen to or rename the found OGG streams before extracting. The program arguments for the
 command-line version are:
-* **-h** Shows help.
-* **-s <number>**     Filter found streams by size (in Kb).
-* **-l <number>**    Filter found streams by length in seconds.
-* **-o <output_dir>** Specify output directory for files.
-* **-i <input_file>** Specify input file to scan for OGG streams.
-* **-d**              Do not extract OGG streams, just dump stream information in a CSV file.
-* **-r <range>**      Ranges or positions to extract separated by commas. Ranges are specified as lower_pos-upper_pos
-                  and both positions are included. For example '1,3,7-10' will extract the OGG streams in the 
-                  positions 1,3,7,8,9 and 10. Positions start at 1.
+
+| Option                       | Description   |
+|:-----------------------------|--------------:|
+| **-h**                       | Shows help.   |
+| **-s <number>**              | Filter found streams by size (in Kb). |
+| **-l <number>**              | Filter found streams by length in seconds. |
+| **-o <output_dir>**          | Specify output directory for files. |
+| **-i <input_file>**          | Specify input file to scan for OGG streams. |
+| **-d**                       | Do not extract OGG streams, just dump stream information in a CSV file. |
+| **-r <range>**               | Ranges or positions to extract separated by commas. Ranges are specified 
+                                 as lower_pos-upper_pos and both positions are included. For example 
+                                 '1,3,7-10' will extract the OGG streams in the positions 1,3,7,8,9 and 10.
+                                 Positions start at 1. |
                   
 The CLI version do not depend on Qt library and the only file needed for it to work is the executable. It's main 
 purpose is to be used inside command-line scripts to scan and extract files in bulk but of course can be used as-is.
