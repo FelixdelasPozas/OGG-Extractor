@@ -172,8 +172,15 @@ std::string getOutputFilename(const int i, const OGGData &data, const unsigned l
   std::filesystem::path container(OGGWrapper::ws2s(data.container));
 
   std::stringstream sstr;
-  sstr << std::setw(std::to_string(totalSize).length()) << std::setfill('0')
-       << container.filename().string() << "_" << data.start << "-" << data.end << "_(" << data.end-data.start << ").ogg";
+  auto updateStream = [&totalSize, &sstr](){ sstr.fill('0'); sstr.width(std::to_string(totalSize).length()); };
+
+  sstr << container.filename().string() << "_";
+  updateStream();
+  sstr << data.start << "-";
+  updateStream();
+  sstr << data.end << "_(";
+  updateStream();
+  sstr << data.end-data.start << ").ogg";
 
   return sstr.str();
 }
@@ -473,7 +480,9 @@ int main(int argc, char *argv[])
     input_stream.seekg(data.start);
 
     std::stringstream numstr;
-    numstr << std::setw(std::to_string(streams.size()).length()) << std::setfill('0') << i+1 << "_";
+    numstr.width(std::to_string(streams.size()).length());
+    numstr.fill('0');
+    numstr << i+1 << "_";
 
     auto output_file = output_dir / (std::string(numstr.str()) + getOutputFilename(i, data, totalSize));
 
