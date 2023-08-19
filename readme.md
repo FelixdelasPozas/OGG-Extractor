@@ -53,10 +53,10 @@ command-line version are:
 | **-o <output_dir>**          | Specify output directory for files. |
 | **-i <input_file>**          | Specify input file to scan for OGG streams. |
 | **-d**                       | Do not extract OGG streams, just dump stream information in a CSV file. |
-| **-r <range>**               | Ranges or positions to extract separated by commas. Ranges are specified 
-                                 as lower_pos-upper_pos and both positions are included. For example 
-                                 '1,3,7-10' will extract the OGG streams in the positions 1,3,7,8,9 and 10.
-                                 Positions start at 1. |
+| **-r <range>**               | Ranges or positions to extract separated by commas. | 
+
+Ranges are specified as lower_pos-upper_pos and both positions are included. For example '1,3,7-10' will 
+extract the OGG streams in the positions 1,3,7,8,9 and 10. Positions start at 1.
                   
 The CLI version do not depend on Qt library and the only file needed for it to work is the executable. It's main 
 purpose is to be used inside command-line scripts to scan and extract files in bulk but of course can be used as-is.
