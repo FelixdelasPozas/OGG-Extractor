@@ -5,7 +5,7 @@ Ogg Extractor
 - [Description](#description)
 - [Compilation](#compilation-requirements)
 - [Install](#install)
-- [Command-line version](#cli)
+- [Command-line version](#command-line version)
 - [Screenshots](#screenshots)
 - [Repository information](#repository-information)
 
