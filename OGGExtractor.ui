@@ -24,7 +24,7 @@
    <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0,0,1,0,0,0">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0,0,1,0,0,0,0">
     <item>
      <widget class="QLabel" name="label">
       <property name="text">
@@ -118,7 +118,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QTableWidget" name="m_filesTable">
+     <widget class="QTableView" name="m_filesTable">
       <property name="enabled">
        <bool>false</bool>
       </property>
@@ -131,68 +131,117 @@
       <property name="alternatingRowColors">
        <bool>true</bool>
       </property>
-      <property name="columnCount">
-       <number>8</number>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::SingleSelection</enum>
       </property>
-      <attribute name="verticalHeaderVisible">
-       <bool>false</bool>
-      </attribute>
-      <column>
-       <property name="text">
-        <string>Selected</string>
-       </property>
-       <property name="toolTip">
-        <string>Selected for extraction</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Name</string>
-       </property>
-       <property name="toolTip">
-        <string>Extraction file name</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Channels</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Rate</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Duration</string>
-       </property>
-       <property name="toolTip">
-        <string>File Duration</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Container</string>
-       </property>
-       <property name="toolTip">
-        <string>Container of the file</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Play/Stop</string>
-       </property>
-       <property name="toolTip">
-        <string>Sound file player</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Errors</string>
-       </property>
-      </column>
      </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QToolButton" name="m_previous">
+        <property name="minimumSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>Go to the previous page.</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="rsc/resources.qrc">
+          <normaloff>:/OGGExtractor/previous.svg</normaloff>:/OGGExtractor/previous.svg</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="m_pageCount">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>Current page.</string>
+        </property>
+        <property name="text">
+         <string>[Empty]</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_5">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QToolButton" name="m_next">
+        <property name="minimumSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="toolTip">
+         <string>Go to the next page.</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="rsc/resources.qrc">
+          <normaloff>:/OGGExtractor/next.svg</normaloff>:/OGGExtractor/next.svg</iconset>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_9">

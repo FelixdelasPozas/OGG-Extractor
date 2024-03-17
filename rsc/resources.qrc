@@ -1,12 +1,14 @@
 <RCC>
   <qresource prefix="/OGGExtractor">
+    <file>cancel.svg</file>
     <file>application.ico</file>
-	<file>application.svg</file>
-	<file>cancel.svg</file>
-	<file>play.svg</file>
-	<file>stop.svg</file>
-	<file>information.svg</file>
-	<file>qt.ico</file>
-	<file>XiphOrg.svg</file>
+    <file>application.svg</file>
+    <file>play.svg</file>
+    <file>stop.svg</file>
+    <file>information.svg</file>
+    <file>qt.ico</file>
+    <file>XiphOrg.svg</file>
+    <file>next.svg</file>
+    <file>previous.svg</file>
   </qresource>
 </RCC>

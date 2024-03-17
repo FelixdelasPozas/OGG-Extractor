@@ -32,10 +32,11 @@
 #include <QAudio>
 
 class QByteArray;
-class QPushButton;
+class QToolButton;
 class QBuffer;
 class QAudioOutput;
 class QWinTaskbarButton;
+class TableModel;
 
 /** \class OGGExtractor
  * \brief Main dialog class.
@@ -120,6 +121,11 @@ class OGGExtractor
      */
     void onPlayButtonPressed();
 
+    /** \brief Updates the boolean vector with the value of the changed checkbox. 
+     * 
+     */
+    void onCheckboxModified();
+
     /** \brief Stops the audio currently playing and frees the resources.
      *
      */
@@ -148,17 +154,26 @@ class OGGExtractor
      */
     void onProgressSignaled(int value);
 
+    /**\brief Updates the UI buttons and sets the page in the model. 
+     * 
+     */
+    void onMovementButtonClicked();
+
   private:
     /** \brief Helper method that connects the signals of the UI with its correspondent slots.
      *
      */
     void connectSignals();
 
-    /** \brief Adds a row to the OGG file table widget.
-     * \param[in] data OGG file data.
+    /** \brief Inserts the widgets in the table and connects the signals. 
      *
      */
-    void insertDataInTable(const OGGData &data);
+    void insertWidgetsInTable();
+
+    /** \brief Removes the widgets in the table and disconnects the signals. 
+     *
+     */
+    void removeWidgetsFromTable();
 
     /** \brief Shows an error dialog with the given error mesage and details.
      * \param[in] error error message.
@@ -198,17 +213,17 @@ class OGGExtractor
      */
     void playBufffer(std::shared_ptr<QByteArray> pcmBuffer, const OGGData &data);
 
-    QStringList    m_containers;    /** file names of the containers.               */
-    QList<OGGData> m_soundFiles;    /** found OGG files information.                */
-    bool           m_cancelProcess; /** true if current process has been cancelled. */
-    float          m_volume;        /** value of volume slider in [0-1]             */
+    QStringList          m_containers;     /** file names of the containers.               */
+    std::vector<OGGData> m_soundFiles;     /** found OGG files information.                */
+    std::vector<bool>    m_soundSelected;  /** true if selected and false otherwise.       */
+    bool                 m_cancelProcess;  /** true if current process has been cancelled. */
+    float                m_volume;         /** value of volume slider in [0-1]             */
 
-    QPushButton                  *m_playButton;    /** button of a currently playing sound.                         */
+    QToolButton                  *m_playButton;    /** button of a currently playing sound.                         */
     std::shared_ptr<QByteArray>   m_sample;        /** raw buffer of currently playing sound.                       */
     std::shared_ptr<QBuffer>      m_buffer;        /** QIODevice wrapper of a memory buffer, 'sample' in this case. */
     std::shared_ptr<QAudioOutput> m_audio;         /** sound player.                                                */
     QWinTaskbarButton            *m_taskBarButton; /** taskbar progress widget.                                     */
     std::shared_ptr<ScanThread>   m_thread;        /** thread for scanning containers.                              */
-
-    QString getDefaultOutputFilename(const int i, const OGGData &data);
+    TableModel                   *m_tableModel;    /** table internal model.                                        */
 };

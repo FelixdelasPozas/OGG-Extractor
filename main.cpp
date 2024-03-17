@@ -18,7 +18,7 @@
  */
 
 // Project
-#include "OGGExtractor.h"
+#include <OGGExtractor.h>
 
 // Qt
 #include <QApplication>

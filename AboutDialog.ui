@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>388</width>
-    <height>296</height>
+    <height>315</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>388</width>
-    <height>296</height>
+    <height>315</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>388</width>
-    <height>296</height>
+    <height>315</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -90,7 +90,7 @@
          <item>
           <widget class="QLabel" name="m_version">
            <property name="text">
-            <string>version 1.5.0</string>
+            <string>version 1.9.0</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -114,6 +114,25 @@
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_10">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>&lt;a href=&quot;https://github.com/FelixdelasPozas/OGG-Extractor&quot;&gt;Homepage&lt;/a&gt;</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="openExternalLinks">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -308,6 +327,9 @@ Qt Framework</string>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
             </property>
+            <property name="openExternalLinks">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
          </layout>
@@ -320,10 +342,13 @@ Qt Framework</string>
    <item>
     <widget class="QLabel" name="label_5">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Some icons by &lt;a href=&quot;http://www.freepik.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Freepik&lt;/span&gt;&lt;/a&gt; from &lt;a href=&quot;http://www.flaticon.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;www.flaticon.com&lt;/span&gt;&lt;/a&gt; (licensed by &lt;a href=&quot;http://creativecommons.org/licenses/by/3.0/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;CC 3.0&lt;/span&gt;&lt;/a&gt;).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Icons courtesy of &lt;a href=&quot;https://www.svgrepo.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://www.svgrepo.com/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

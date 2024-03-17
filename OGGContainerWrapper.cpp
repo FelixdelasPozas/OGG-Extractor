@@ -18,7 +18,7 @@
  */
 
 // Project
-#include "OGGContainerWrapper.h"
+#include <OGGContainerWrapper.h>
 
 // C++
 #include <fstream>

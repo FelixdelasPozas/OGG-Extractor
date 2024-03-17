@@ -60,7 +60,7 @@ class ScanThread
     /** \brief Returns the list of found streams.
      *
      */
-    const QList<OGGData> &streams() const;
+    const std::vector<OGGData> &streams() const;
 
     /** \brief Returns the number of found streams.
      *
@@ -90,11 +90,11 @@ class ScanThread
       virtual void run();
 
   private:
-      const QStringList m_containers;      /** list of container files.                          */
-      QList<OGGData>    m_streams;         /** found streams data.                               */
-      bool              m_aborted;         /** true if aborted, false otherwise.                 */
-      long long         m_minimumSize;     /** minimum file size to add to the found list.       */
-      unsigned int      m_minimumDuration; /** minimum stream duration to add to the found list. */
+      const QStringList    m_containers;      /** list of container files.                          */
+      std::vector<OGGData> m_streams;         /** found streams data.                               */
+      bool                 m_aborted;         /** true if aborted, false otherwise.                 */
+      long long            m_minimumSize;     /** minimum file size to add to the found list.       */
+      unsigned int         m_minimumDuration; /** minimum stream duration to add to the found list. */
 
 };
 

@@ -1,12 +1,13 @@
+cmake_minimum_required (VERSION 3.5.0)
+
 project(OGGExtractor)
 
-cmake_minimum_required (VERSION 3.0.0)
 cmake_policy(SET CMP0053 NEW)
 cmake_policy(SET CMP0071 OLD)
 
 # Version Number
 set (OGG_EXTRACTOR_VERSION_MAJOR 1)
-set (OGG_EXTRACTOR_VERSION_MINOR 8)
+set (OGG_EXTRACTOR_VERSION_MINOR 9)
 set (OGG_EXTRACTOR_VERSION_PATCH 0)
 
 # Find includes in corresponding build directories
@@ -14,6 +15,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
 
 # Find the QtWidgets library
 find_package(Qt5 COMPONENTS Widgets Multimedia)
@@ -84,6 +86,7 @@ set (WINAPP_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
   main.cpp
+  TableModel.cpp
   OGGExtractor.cpp
   AboutDialog.cpp
   OGGContainerWrapper.cpp

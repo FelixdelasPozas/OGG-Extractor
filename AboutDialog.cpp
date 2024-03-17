@@ -18,12 +18,12 @@
  */
 
 // Project
-#include "AboutDialog.h"
+#include <AboutDialog.h>
 
 // Ogg
 #include <vorbis/codec.h>
 
-const QString VERSION = QString("version 1.8.0");
+const QString VERSION = QString("version 1.9.0");
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)

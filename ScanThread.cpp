@@ -50,7 +50,7 @@ void ScanThread::abort()
 }
 
 //--------------------------------------------------------------------
-const QList<OGGData> &ScanThread::streams() const
+const std::vector<OGGData> &ScanThread::streams() const
 {
   return m_streams;
 }
@@ -96,7 +96,7 @@ void ScanThread::run()
 
     unsigned char oggHeader[27];
 
-    while (!eof)
+    while (!eof && !m_aborted)
     {
       const int value = 100.0*(static_cast<double>(partialSize)/totalSize);
       if(value != progressValue)
@@ -201,7 +201,7 @@ void ScanThread::run()
                 continue;
               }
 
-              m_streams << data;
+              m_streams.push_back(data);
             }
           }
         }
@@ -212,6 +212,8 @@ void ScanThread::run()
 
       if (bytesRead < BUFFER_SIZE) eof = true;
     }
+
+    emit progress(100);
   }
 
   delete [] buffer;
