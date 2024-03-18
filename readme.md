@@ -20,6 +20,7 @@ Tool to scan and extract OGG sound files from big game data files. This program 
 * 'FEZ' by Polytron Corporation.
 * 'The Chronicles Of Riddick: Escape From Butcher Bay' by Starbreeze Studios.
 * 'The Chronicles Of Riddick: Assault On Dark Athena' by Starbreeze Studios.
+* 'Far Cry 3' by Ubisoft Entertainment Inc.
 
 It will probably work with any program that uses unencrypted OGG Vorbis audio files. 
 
@@ -66,14 +67,10 @@ and range can produce no files being extracted.
 # Screenshots
 Simple main dialog.
 
-![Main dialog](https://user-images.githubusercontent.com/12167134/55731451-8a73b880-5a1a-11e9-9343-712513c41f1d.jpg)
-
-Command-line version
-
-![CLI version](https://user-images.githubusercontent.com/12167134/261821158-19554381-b7c6-4d94-8353-095ccf02b0bc.png)
+![Main dialog](https://github.com/FelixdelasPozas/OGG-Extractor/assets/12167134/64efffcf-67b2-42f8-882d-b6ce26e18232)
 
 # Repository information
-**Version**: 1.8.0
+**Version**: 1.9.0
 
 **Status**: finished
 
@@ -83,7 +80,7 @@ Command-line version
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |    6          |  341        |    196           | 1253 |
-| C/C++ Header                 |    4          |   87        |    256           | 149  |
-| CMake                        |    1          |   21        |      9           |  93  |
-| **Total**                    |   **11**      |  **449**    |   **461**        |**1495**|
+| C++                          |    7          |  381        |    237           | 1532 |
+| C/C++ Header                 |    5          |  119        |    334           | 219  |
+| CMake                        |    1          |   22        |      9           |  94  |
+| **Total**                    |   **13**      |  **522**    |   **580**        |**1845**|
