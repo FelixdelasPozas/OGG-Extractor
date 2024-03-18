@@ -26,8 +26,8 @@ endif()
 
 #libvorbis
 if(WIN32)
-set(LIBVORBIS_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.5/include")
-set(LIBVORBIS_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.5/lib/.libs")
+set(LIBVORBIS_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.7/include")
+set(LIBVORBIS_LIBRARY_DIR "D:/Desarrollo/Bibliotecas/libvorbis-1.3.7/build/lib/")
 set(LIBVORBIS_LIBRARIES   ${LIBVORBIS_LIBRARY_DIR}/libvorbisfile.a
                           ${LIBVORBIS_LIBRARY_DIR}/libvorbis.a)
 else()
@@ -37,8 +37,8 @@ endif()
 
 #libogg
 if(WIN32)
-set(LIBOGG_INCLUDE_DIR "D:/Desarrollo/Bibliotecas/libogg-1.3.2/include")
-set(LIBOGG_LIBRARY "D:/Desarrollo/Bibliotecas/libogg-1.3.2/src/.libs/libogg.a")
+set(LIBOGG_INCLUDE_DIRS "D:/Desarrollo/Bibliotecas/libogg-1.3.5/include" "D:/Desarrollo/Bibliotecas/libogg-1.3.5/build/include")
+set(LIBOGG_LIBRARY "D:/Desarrollo/Bibliotecas/libogg-1.3.5/build/libogg.a")
 else()
 find_library(LIBOGG_LIBRARY libogg)
 endif()
@@ -62,7 +62,7 @@ include_directories(
   ${CMAKE_BINARY_DIR}          # Generated .h files
   ${CMAKE_CURRENT_BINARY_DIR}  # For wrap/ui files
   ${LIBVORBIS_INCLUDE_DIR}
-  ${LIBOGG_INCLUDE_DIR}
+  ${LIBOGG_INCLUDE_DIRS}
   )
 
 set(CMAKE_CXX_STANDARD 17)
@@ -101,7 +101,6 @@ set (CLI_SOURCES
 set(OGG_LIBS
   ${LIBVORBIS_LIBRARIES}
   ${LIBOGG_LIBRARY}
-  ${LIBOGG_LIBRARIES}
 )
 
 set(EXTERNAL_LIBS

@@ -23,7 +23,12 @@
 // Ogg
 #include <vorbis/codec.h>
 
+// Qt
+#include <QtGlobal>
+#include <QDateTime>
+
 const QString VERSION = QString("version 1.9.0");
+const QString COPYRIGHT{"Copyright (c) 2016-%1 Félix de las Pozas Álvarez"};
 
 //-----------------------------------------------------------------
 AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
@@ -41,5 +46,6 @@ AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
 
   m_qtVersion->setText(tr("version %1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH));
   const auto vorbisVersion = QString(vorbis_version_string()).split(" ").last();
-  m_vorbisVersion->setText(tr("<b>libVorbis</b> version %1<br><b>libOgg</b> version %2").arg(vorbisVersion).arg("1.3.2"));
+  m_vorbisVersion->setText(tr("<b>libVorbis</b> version %1<br><b>libOgg</b> version %2").arg(vorbisVersion).arg("1.3.5"));
+  m_copyright->setText(COPYRIGHT.arg(QDateTime::currentDateTime().date().year()));
 }

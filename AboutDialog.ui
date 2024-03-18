@@ -98,7 +98,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_4">
+          <widget class="QLabel" name="m_copyright">
            <property name="text">
             <string>Copyright (c) 2016 Félix de las Pozas Álvarez</string>
            </property>
