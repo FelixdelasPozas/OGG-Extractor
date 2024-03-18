@@ -89,6 +89,7 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
 
     switch(role)
     {
+      case Qt::EditRole:
       case Qt::DisplayRole:
         return dataDisplayRole(data, index.column());
       break;
@@ -108,18 +109,39 @@ QVariant TableModel::data(const QModelIndex &index, int role) const
 //----------------------------------------------------------------------------
 bool TableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-  if(m_data && role == Qt::DisplayRole && index.isValid() && index.column() == 7)
+  if(m_data && index.isValid())
   {
     const auto row = (m_page * m_pageSize) + index.row();
-    m_data->at(row).error = value.toString().toStdString();
+    switch(role)
+    {
+      case Qt::DisplayRole:
+        if(index.column() == 7)
+        {
+          const auto row = (m_page * m_pageSize) + index.row();
+          m_data->at(row).error = value.toString().toStdString();
+        }
+        break;
+      case Qt::EditRole:
+        if(index.column() == 1)
+        {
+          m_data->at(row).name = value.toString().toStdWString();
+        }
+        break;
+      default:
+        break;        
+    }
   }
+
   return false;
 }
 
 //----------------------------------------------------------------------------
 Qt::ItemFlags TableModel::flags(const QModelIndex &index) const
 {
-  return Qt::ItemIsEnabled;
+  if(index.column() == 1)
+    return Qt::ItemIsEnabled|Qt::ItemIsEditable;
+
+  return Qt::ItemIsEnabled;    
 }
 
 //----------------------------------------------------------------------------
@@ -187,16 +209,19 @@ QVariant TableModel::dataDisplayRole(const OGGData &data, int column) const
   {
     case 1: // Filename
       {
-          auto it = m_cache.find(data.container);
-          if (it == m_cache.cend())
-          {
-            const QFileInfo fileInfo(QString::fromStdWString(data.container));
-            m_cache.emplace(data.container, ContainerCache{fileInfo.completeBaseName(), QString::number(fileInfo.size(), 16).length()});
-          }
-          it = m_cache.find(data.container);
+        if(!data.name.empty())
+          return QString::fromStdWString(data.name);
 
-          const auto cache = (*it).second;
-          return tr("%1 0x%2-0x%3 (%4)").arg(cache.baseName).arg(data.start, cache.fieldWidth, 16, QLatin1Char('0')).arg(data.end, cache.fieldWidth, 16, QLatin1Char('0')).arg(data.end - data.start);
+        auto it = m_cache.find(data.container);
+        if (it == m_cache.cend())
+        {
+          const QFileInfo fileInfo(QString::fromStdWString(data.container));
+          m_cache.emplace(data.container, ContainerCache{fileInfo.completeBaseName(), QString::number(fileInfo.size(), 16).length()});
+        }
+        it = m_cache.find(data.container);
+
+        const auto cache = (*it).second;
+        return QString("%1 0x%2-0x%3 (%4)").arg(cache.baseName).arg(data.start, cache.fieldWidth, 16, QLatin1Char('0')).arg(data.end, cache.fieldWidth, 16, QLatin1Char('0')).arg(data.end - data.start);
       }
       break;
     case 2: // Channels
@@ -206,13 +231,19 @@ QVariant TableModel::dataDisplayRole(const OGGData &data, int column) const
       return QString::number(data.rate);
       break;
     case 4: // Duration
-      return QString("%1:%2:%3").arg(data.duration / 3600, 2, 10, QChar('0')).arg(data.duration / 60, 2, 10, QChar('0')).arg(data.duration % 60, 2, 10, QChar('0'));
+      {
+        qulonglong iSeconds = static_cast<qulonglong>(data.duration);
+        return QString("%1:%2:%3,%4").arg(iSeconds / 3600, 2, 10, QChar('0'))
+                                    .arg(iSeconds / 60, 2, 10, QChar('0'))
+                                    .arg(iSeconds % 60, 2, 10, QChar('0'))
+                                    .arg(static_cast<qulonglong>((data.duration - iSeconds)*1000), 3, 10, QChar('0'));
+      }
       break;
     case 5: // Container
       {
-          QString containerName = "Unknown";
-          const auto file = std::filesystem::path(data.container);
-          return QString::fromStdWString(file.filename());
+        QString containerName = "Unknown";
+        const auto file = std::filesystem::path(data.container);
+        return QString::fromStdWString(file.filename());
       }
       break;
     case 7: // Errors
@@ -235,7 +266,7 @@ QVariant TableModel::dataTooltipRole(int column) const
     case 0:
       return QString("Check to select audio file for extraction.");
     case 1:
-      return QString("Output audio file name.");
+      return QString("Output audio file name. Double-click to edit.");
     case 2:
       return QString("Number of channels of audio file.");
     case 3:

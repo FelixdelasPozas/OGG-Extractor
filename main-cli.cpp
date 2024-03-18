@@ -32,7 +32,7 @@
 // Project
 #include <OGGContainerWrapper.h>
 
-const std::string VERSION = "version 1.8.0";
+const std::string VERSION = "version 1.9.0";
 const long long BUFFER_SIZE = 5242880; /** 5 MB size buffer.     */
 const char *OGG_HEADER = "OggS";       /** Ogg header signature. */
 
@@ -365,7 +365,7 @@ int main(int argc, char *argv[])
         if (0 == (strncmp((const char *) oggHeader, OGG_HEADER, 4)))
         {
           // detected beginning of ogg file
-          if (oggHeader[5] == 0x02)
+          if (oggHeader[5] & 0x02)
           {
             beginFound = true;
             oggBeginning = processed + loop;
@@ -373,13 +373,13 @@ int main(int argc, char *argv[])
           }
 
           // detected ending of ogg file, more difficult because of trailing frames
-          if (beginFound && ((oggHeader[5] == 0x04) || (oggHeader[5] == 0x05)))
+          if (beginFound && (oggHeader[5] & 0x04))
           {
             endFound = true;
-            oggEnding = processed + loop + 27;
+            oggEnding = processed + loop + sizeof(oggHeader);
 
-            auto trailingSize   = static_cast<size_t>(oggHeader[26]);
-            auto trailingFrames = new char[trailingSize];
+            const auto trailingSize   = static_cast<size_t>(oggHeader[26]);
+            const auto trailingFrames = new char[trailingSize];
 
             input_stream.seekg(oggEnding);
             input_stream.read(trailingFrames, trailingSize);
@@ -391,11 +391,12 @@ int main(int argc, char *argv[])
               std::exit(-1);
             }
 
-            oggEnding += (unsigned long long) oggHeader[26];
+            oggEnding += trailingSize;
 
-            for (unsigned long loop2 = 0; loop2 < (unsigned long) oggHeader[26]; loop2++)
+            for (unsigned int i = 0; i < trailingSize; i++)
             {
-              oggEnding += (unsigned long long) trailingFrames[loop2];
+              const unsigned char lacingValue = trailingFrames[i];
+              oggEnding += static_cast<unsigned int>(lacingValue);
             }
 
             delete [] trailingFrames;

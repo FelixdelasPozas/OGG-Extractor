@@ -33,29 +33,33 @@ OGGWrapper::OGGContainerWrapper::OGGContainerWrapper(const OGGData& data)
 : m_data    (data)
 , m_position{0}
 {
+  m_container = std::ifstream{ws2s(m_data.container), std::ios_base::in|std::ios_base::binary};
+}
+
+//----------------------------------------------------------------
+OGGWrapper::OGGContainerWrapper::~OGGContainerWrapper()
+{
+  if(m_container.is_open())
+    m_container.close();
 }
 
 //----------------------------------------------------------------
 size_t OGGWrapper::OGGContainerWrapper::read(void* ptr, size_t size, size_t nmemb)
 {
-  std::ifstream container{ws2s(m_data.container), std::ios_base::in|std::ios_base::binary};
+  if(!m_container.is_open()) return 0;
 
-  if(!container.is_open()) return 0;
-
-  container.seekg(m_data.start + m_position);
+  m_container.seekg(m_data.start + m_position);
 
   auto readSize = nmemb * size;
-  auto fileSize = m_data.end-m_data.start;
+  const auto fileSize = m_data.end-m_data.start;
 
   if(fileSize < m_position + readSize)
-  {
     readSize = fileSize - m_position;
-  }
 
   if(readSize > 0)
   {
-    container.read(reinterpret_cast<char *>(ptr), readSize);
-    m_position += container.gcount();
+    m_container.read(reinterpret_cast<char *>(ptr), readSize);
+    m_position += m_container.gcount();
   }
 
   return readSize;
@@ -64,32 +68,26 @@ size_t OGGWrapper::OGGContainerWrapper::read(void* ptr, size_t size, size_t nmem
 //----------------------------------------------------------------
 int OGGWrapper::OGGContainerWrapper::seek(ogg_int64_t offset, int whence)
 {
+  if(!m_container.is_open()) return -1;
+  
   ogg_int64_t filesize = m_data.end-m_data.start;
 
   switch (whence)
   {
     case SEEK_SET:
       if(filesize > offset)
-      {
         m_position = offset;
-      }
       else
-      {
         m_position = filesize;
-      }
       break;
     case SEEK_CUR:
       {
         ogg_int64_t toEOF = filesize - m_position;
 
         if(offset < toEOF)
-        {
           m_position += offset;
-        }
         else
-        {
           m_position = filesize;
-        }
       }
       break;
     case SEEK_END:
@@ -192,6 +190,13 @@ bool OGGWrapper::oggInfo(OGGData& data)
   }
 
   const auto info  = ov_info(&oggFile, 0);
+
+  if(!info)
+  {
+    data.error = std::string("Unable to get ogg info struct.");
+    return false;
+  }
+
   data.channels    = info->channels;
   data.rate        = info->rate;
   data.duration    = ov_time_total(&oggFile, -1);

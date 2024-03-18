@@ -26,6 +26,9 @@
 // Qt
 #include <string>
 
+// C++
+#include <fstream>
+
 struct OGGData
 {
   std::wstring       container; /** container file name.                       */
@@ -33,8 +36,9 @@ struct OGGData
   unsigned long long end;       /** end position in container file.            */
   int                channels;  /** number of channels of OGG file.            */
   int                rate;      /** sample rate of the OGG file.               */
-  unsigned int       duration;  /** file duration in seconds.                  */
+  double             duration;  /** file duration in seconds.                  */
   std::string        error;     /** empty on success, error message otherwise. */
+  std::wstring       name;      /** name given by the user or empty otherwise. */
 
   OGGData(): start{0}, end{0}, channels{0}, rate{0}, duration{0} {};
 };
@@ -58,8 +62,7 @@ namespace OGGWrapper
       /** \brief OGGContainerWrapper class virtual destructor.
        *
        */
-      virtual ~OGGContainerWrapper()
-      {};
+      virtual ~OGGContainerWrapper();
 
       /** \brief Reads size bytes of nmemb size to ptr and returns the number of elements read.
        * \param[in] ptr data buffer
@@ -87,8 +90,9 @@ namespace OGGWrapper
       long tell();
 
     private:
-      const OGGData m_data;     /** OGG file data.         */
-      ogg_int64_t   m_position; /** current file position. */
+      const OGGData m_data;      /** OGG file data.         */
+      ogg_int64_t   m_position;  /** current file position. */
+      std::ifstream m_container; /** container file stream. */
   };
 
   /** \brief Callback methods as defined in ov_callbacks structure (vorbisfile.h line 39).

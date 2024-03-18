@@ -259,10 +259,7 @@ void OGGExtractor::scanContainers()
   m_scan->setEnabled(false);
   m_extract->setEnabled(false);
 
-  if(m_audio)
-  {
-    stopBuffer();
-  }
+  stopBuffer();
 
   m_tableModel->clearModel();
   m_soundFiles.clear();
@@ -510,7 +507,8 @@ void OGGExtractor::onPlayButtonPressed()
     return;
 
   bool ok = false;
-  const auto index = button->property("Index").toUInt(&ok) + (m_tableModel->page() * m_tableModel->pageSize());
+  const auto buttonIdx = button->property("Index").toUInt(&ok);
+  const auto index = buttonIdx + (m_tableModel->page() * m_tableModel->pageSize());
   if(ok && index >= 0 && index < m_soundFiles.size())
   {
     if(button == m_playButton)
@@ -531,7 +529,7 @@ void OGGExtractor::onPlayButtonPressed()
 
     if(!m_sample && !data.error.empty())
     {
-      m_tableModel->setData(m_tableModel->index(index, 7), QString::fromStdString(data.error), Qt::DisplayRole);
+      m_tableModel->setData(m_tableModel->index(buttonIdx, 7), QString::fromStdString(data.error), Qt::DisplayRole);
       m_filesTable->repaint();
       button->setIcon(QIcon(":/OGGExtractor/play.svg"));
     }
@@ -679,10 +677,15 @@ void OGGExtractor::playBufffer(std::shared_ptr<QByteArray> pcmBuffer, const OGGD
 
   m_audio = std::make_shared<QAudioOutput>(format, this);
   m_audio->setVolume(m_volume);
+  m_audio->setNotifyInterval(100);
+  m_audio->setProperty("Duration", data.duration);
+
+  m_progress->setFormat("Playing... %p%");
 
   m_audio->start(m_buffer.get());
 
   connect(m_audio.get(), SIGNAL(stateChanged(QAudio::State)), this, SLOT(stopBuffer()));
+  connect(m_audio.get(), SIGNAL(notify()), this, SLOT(onAudioNotify()));
 }
 
 //----------------------------------------------------------------
@@ -704,6 +707,9 @@ void OGGExtractor::stopBuffer()
   m_audio = nullptr;
   m_buffer = nullptr;
   m_sample = nullptr;
+
+  m_progress->setFormat("%p%");
+  m_progress->setValue(0);
 }
 
 //----------------------------------------------------------------
@@ -773,6 +779,8 @@ void OGGExtractor::onProgressSignaled(int value)
 //----------------------------------------------------------------
 void OGGExtractor::onMovementButtonClicked()
 {
+  stopBuffer();
+
   auto button = qobject_cast<QToolButton *>(sender());
   if(button)
   {
@@ -785,6 +793,19 @@ void OGGExtractor::onMovementButtonClicked()
     m_pageCount->setText(QString("%1 of %2").arg(currentPage + 1).arg(m_tableModel->maxPage()));
     insertWidgetsInTable();
     m_filesTable->scrollTo(m_tableModel->index(0,0), QTableView::ScrollHint::EnsureVisible);
+  }
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::onAudioNotify()
+{
+  bool ok = false;
+  const auto duration = m_audio->property("Duration").toDouble(&ok);
+
+  if(ok)
+  {
+    const int progressValue = m_audio->processedUSecs()/(duration*10000);
+    m_progress->setValue(progressValue);
   }
 }
 

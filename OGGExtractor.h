@@ -159,6 +159,11 @@ class OGGExtractor
      */
     void onMovementButtonClicked();
 
+    /** \brief Updates the progres bar with the current audio play progress.
+     * 
+     */
+    void onAudioNotify();
+
   private:
     /** \brief Helper method that connects the signals of the UI with its correspondent slots.
      *

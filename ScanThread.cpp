@@ -82,6 +82,7 @@ void ScanThread::run()
       auto message = tr("Error opening file '%1'").arg(filename);
       auto details = tr("Error: %1").arg(file.errorString());
       emit error(message, details);
+      partialSize += file.size();
 
       continue;
     }
@@ -96,9 +97,11 @@ void ScanThread::run()
 
     unsigned char oggHeader[27];
 
+    const auto containerSize = file.size();
+
     while (!eof && !m_aborted)
     {
-      const int value = 100.0*(static_cast<double>(partialSize)/totalSize);
+      const int value = (100.0*static_cast<double>(partialSize)/totalSize);
       if(value != progressValue)
       {
         progressValue = value;
@@ -131,7 +134,7 @@ void ScanThread::run()
           if (0 == (strncmp((const char *) oggHeader, OGG_HEADER, 4)))
           {
             // detected beginning of ogg file
-            if (oggHeader[5] == 0x02)
+            if (oggHeader[5] & 0x02)
             {
               beginFound = true;
               oggBeginning = processed + loop;
@@ -139,17 +142,17 @@ void ScanThread::run()
             }
 
             // detected ending of ogg file, more difficult because of trailing frames
-            if (beginFound && ((oggHeader[5] == 0x04) || (oggHeader[5] == 0x05)))
+            if (beginFound && (oggHeader[5] & 0x04))
             {
               endFound = true;
-              oggEnding = processed + loop + 27;
+              oggEnding = processed + loop + sizeof(oggHeader);
 
-              auto trailingSize   = static_cast<size_t>(oggHeader[26]);
-              auto trailingFrames = new char[trailingSize];
+              const auto trailingSize = static_cast<size_t>(oggHeader[26]);
+              const auto trailingFrames = new unsigned char[trailingSize];
 
               position   = file.pos();
               seekResult = file.seek(oggEnding);
-              readResult = file.read(trailingFrames, trailingSize);
+              readResult = file.read(reinterpret_cast<char *>(trailingFrames), trailingSize);
 
               if (!seekResult || (trailingSize != readResult))
               {
@@ -164,11 +167,12 @@ void ScanThread::run()
               }
               file.seek(position);
 
-              oggEnding += (unsigned long long) oggHeader[26];
+              oggEnding += trailingSize;
 
-              for (unsigned long loop2 = 0; loop2 < (unsigned long) oggHeader[26]; loop2++)
+              for (unsigned long i = 0; i < trailingSize; i++)
               {
-                oggEnding += (unsigned long long) trailingFrames[loop2];
+                unsigned char lacingValue = trailingFrames[i];
+                oggEnding += static_cast<unsigned int>(lacingValue);
               }
 
               delete [] trailingFrames;
@@ -176,8 +180,7 @@ void ScanThread::run()
 
             if ((beginFound == true) && (endFound == true))
             {
-              beginFound = false;
-              endFound = false;
+              beginFound = endFound = false;
 
               long long size = oggEnding - oggBeginning;
               if (m_minimumSize > 0 && (size < (m_minimumSize * 1024)))
@@ -191,17 +194,17 @@ void ScanThread::run()
               data.start     = oggBeginning;
               data.end       = oggEnding;
 
-              OGGWrapper::oggInfo(data);
-
-              const auto time = data.duration;
-
-              if(data.error.empty() && m_minimumDuration > 0 && (time < m_minimumDuration))
+              if(OGGWrapper::oggInfo(data))
               {
-                // skip file because duration
-                continue;
-              }
+                const auto time = data.duration;
+                if(m_minimumDuration > 0 && (time < m_minimumDuration))
+                {
+                  // skip file because duration or error
+                  continue;
+                }
 
-              m_streams.push_back(data);
+                m_streams.push_back(data);
+              }
             }
           }
         }

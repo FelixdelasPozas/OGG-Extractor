@@ -120,7 +120,7 @@ class TableModel
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     virtual QModelIndex parent(const QModelIndex& child) const override;
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;    
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
     /** \brief Helper method that returns the displayRole data for the given OGGData.
      * \param[in] data OGGData struct reference. 
