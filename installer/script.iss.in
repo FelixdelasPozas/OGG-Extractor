@@ -3,7 +3,7 @@
 [Setup]
 AppName=OGG Extractor
 AppVersion=@OGG_EXTRACTOR_VERSION_MAJOR@.@OGG_EXTRACTOR_VERSION_MINOR@.@OGG_EXTRACTOR_VERSION_PATCH@
-DefaultDirName={pf64}\OGG Extractor
+DefaultDirName={commonpf64}\OGG Extractor
 DefaultGroupName=OGG Extractor
 OutputDir=@PROJECT_BINARY_DIR@
 AppComments=OGG Extractor
