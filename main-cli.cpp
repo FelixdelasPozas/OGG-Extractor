@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
   }
 
   // All done, begin scanning
-  auto buffer = new char[BUFFER_SIZE];
+  auto buffer = new unsigned char[BUFFER_SIZE];
   long long processed = 0;
   unsigned long long oggBeginning = 0;
   unsigned long long oggEnding    = 0;
@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
   {
     input_stream.seekg(processed);
 
-    input_stream.read(buffer, BUFFER_SIZE);
+    input_stream.read(reinterpret_cast<char *>(buffer), BUFFER_SIZE);
     auto bytesRead = input_stream.gcount();
 
     if(bytesRead < BUFFER_SIZE) // reset fail bit if reached the end.
@@ -379,10 +379,10 @@ int main(int argc, char *argv[])
             oggEnding = processed + loop + sizeof(oggHeader);
 
             const auto trailingSize   = static_cast<size_t>(oggHeader[26]);
-            const auto trailingFrames = new char[trailingSize];
+            const auto trailingFrames = new unsigned char[trailingSize];
 
             input_stream.seekg(oggEnding);
-            input_stream.read(trailingFrames, trailingSize);
+            input_stream.read(reinterpret_cast<char*>(trailingFrames), trailingSize);
             readResult = input_stream.gcount();
 
             if (!input_stream || (trailingSize != readResult))
@@ -493,13 +493,13 @@ int main(int argc, char *argv[])
     auto remaining = data.end-data.start;
     while(remaining > BUFFER_SIZE)
     {
-      input_stream.read(buffer, BUFFER_SIZE);
+      input_stream.read(reinterpret_cast<char*>(buffer), BUFFER_SIZE);
       remaining -= BUFFER_SIZE;
-      output_stream.write(buffer, BUFFER_SIZE);
+      output_stream.write(reinterpret_cast<char*>(buffer), BUFFER_SIZE);
     }
 
-    input_stream.read(buffer, remaining);
-    output_stream.write(buffer, remaining);
+    input_stream.read(reinterpret_cast<char*>(buffer), remaining);
+    output_stream.write(reinterpret_cast<char*>(buffer), remaining);
     output_stream.close();
 
     std::cout << "Wrote '" << output_file.string() << "'\n";
