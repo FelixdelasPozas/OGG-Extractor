@@ -215,9 +215,9 @@ void ScanThread::run()
 
       if (bytesRead < BUFFER_SIZE) eof = true;
     }
-
-    emit progress(100);
   }
+  
+  emit progress(100);
 
   delete [] buffer;
 }

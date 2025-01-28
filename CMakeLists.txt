@@ -7,7 +7,7 @@ cmake_policy(SET CMP0071 OLD)
 
 # Version Number
 set (OGG_EXTRACTOR_VERSION_MAJOR 1)
-set (OGG_EXTRACTOR_VERSION_MINOR 9)
+set (OGG_EXTRACTOR_VERSION_MINOR 10)
 set (OGG_EXTRACTOR_VERSION_PATCH 0)
 
 # Find includes in corresponding build directories
@@ -91,6 +91,7 @@ set (WINAPP_SOURCES
   AboutDialog.cpp
   OGGContainerWrapper.cpp
   ScanThread.cpp
+  Utils.cpp
 )
 
 set (CLI_SOURCES

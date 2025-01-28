@@ -25,6 +25,7 @@
 
 // Qt
 #include <QDialog>
+#include <QLabel>
 
 /** \class AboutDialog
  * \brief Egocentrical dialog with version and date of build.

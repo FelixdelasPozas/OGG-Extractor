@@ -26,8 +26,10 @@
 // Qt
 #include <QtGlobal>
 #include <QDateTime>
+#include <QDesktopServices>
+#include <QUrl>
 
-const QString VERSION = QString("version 1.9.0");
+const QString VERSION = QString("version 1.10.0");
 const QString COPYRIGHT{"Copyright (c) 2016-%1 Félix de las Pozas Álvarez"};
 
 //-----------------------------------------------------------------
@@ -48,4 +50,7 @@ AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
   const auto vorbisVersion = QString(vorbis_version_string()).split(" ").last();
   m_vorbisVersion->setText(tr("<b>libVorbis</b> version %1<br><b>libOgg</b> version %2").arg(vorbisVersion).arg("1.3.5"));
   m_copyright->setText(COPYRIGHT.arg(QDateTime::currentDateTime().date().year()));
+
+  QObject::connect(m_kofiLabel, &ClickableHoverLabel::clicked,
+                  [this](){ QDesktopServices::openUrl(QUrl{"https://ko-fi.com/felixdelaspozas"}); });  
 }
