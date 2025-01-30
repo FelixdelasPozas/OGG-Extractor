@@ -39,7 +39,8 @@ The following libraries are required:
 * [Xiph's vorbis and ogg libraries](https://www.xiph.org/).
 
 # Install
-Download and execute the latest installer from the [releases](https://github.com/FelixdelasPozas/OGG-Extractor/releases) page.
+
+Ogg Extractor is available for Windows 7 onwards. You can download the latest installer from the [releases page](https://github.com/FelixdelasPozas/OGG-Extractor/releases). Neither the application or the installer are digitally signed so the system will ask for approval before running it the first time.
 
 # Command-line version
 A command-line version of the application is included as an executable ending in "-cli". The filtering options are the same, 
