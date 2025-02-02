@@ -29,7 +29,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-const QString VERSION = QString("version 1.10.0");
+const QString VERSION = QString("version 1.11.0");
 const QString COPYRIGHT{"Copyright (c) 2016-%1 Félix de las Pozas Álvarez"};
 
 //-----------------------------------------------------------------

@@ -29,10 +29,10 @@
 // Qt
 #include <QApplication>
 #include <QAbstractItemModel>
-#include <QAudioOutput>
 #include <QBuffer>
 #include <QCheckBox>
 #include <QFile>
+#include <QAudioFormat>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QHeaderView>
@@ -46,11 +46,14 @@
 #include <QStringListModel>
 #include <QTableWidget>
 #include <QToolButton>
-#ifdef Q_OS_WIN
-#include <QtWinExtras/QWinTaskbarButton>
-#include <QtWinExtras/QWinTaskbarProgress>
-#endif
-#include <QDebug>
+#include <QRegularExpression>
+#include <QMediaDevices>
+#include <QAudioSink>
+#include <QAudio>
+#include <QStyleFactory>
+#include <QApplication>
+#include <QScreen>
+#include <QTimer>
 
 using namespace OGGWrapper;
 
@@ -63,12 +66,15 @@ OGGExtractor::OGGExtractor(QWidget *parent, Qt::WindowFlags flags)
 , m_sample        {nullptr}
 , m_buffer        {nullptr}
 , m_audio         {nullptr}
-#ifdef Q_OS_WIN
-, m_taskBarButton {nullptr}
-#endif
+, m_taskBarButton {this}
 , m_thread        {nullptr}
+, m_audioDevice   {QMediaDevices::defaultAudioOutput()}
 {
   setupUi(this);
+
+  // Better bar than the "Universal" default style in Qt6.
+  m_progress->setStyle(QStyleFactory::create("fusion"));
+  m_taskBarButton.setRange(0,100);
 
   m_cancel->setEnabled(false);
   m_progress->setMaximum(100);
@@ -111,6 +117,17 @@ OGGExtractor::~OGGExtractor()
   m_soundFiles.clear();
   m_soundSelected.clear();
   insertWidgetsInTable();
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::showEvent(QShowEvent *e)
+{
+  QMainWindow::showEvent(e);
+
+  // Center the main dialog. 
+  const auto screenCenter = QApplication::primaryScreen()->availableGeometry().center();
+  const auto center = geometry().center();
+  move(pos() - (center-screenCenter));
 }
 
 //----------------------------------------------------------------
@@ -245,11 +262,7 @@ void OGGExtractor::cancelScan()
 
   m_cancel->setEnabled(false);
   m_progress->setEnabled(false);
-  m_progress->setFormat("%p%");
-  m_progress->setValue(0);
-  #ifdef Q_OS_WIN
-  m_taskBarButton->progress()->setValue(0);
-  #endif
+  setProgress(0, "%p%");
 }
 
 //----------------------------------------------------------------
@@ -283,7 +296,7 @@ void OGGExtractor::scanContainers()
     m_thread->setMinimumStreamDuration(m_minimumTime->value());
   }
 
-  m_progress->setFormat("Scanning... %p%");
+  setProgress(0,"Scanning... %p%");
   connect(m_thread.get(), SIGNAL(progress(int)), this, SLOT(onProgressSignaled(int)));
   connect(m_thread.get(), SIGNAL(error(const QString, const QString)), this, SLOT(onErrorSignaled(const QString, const QString)));
   connect(m_thread.get(), SIGNAL(finished()), this, SLOT(onThreadFinished()));
@@ -303,17 +316,14 @@ void OGGExtractor::extractFiles()
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
   int progressValue = 0;
-  m_progress->setFormat("Extracting selected files... %p%");
+  setProgress(0, "Extracting selected files... %p%");
   for(unsigned int i = 0; i < m_soundFiles.size() && !m_cancelProcess; ++i)
   {
     const int currentProgress = 100.0*(static_cast<float>(i/m_soundFiles.size()));
     if(progressValue != currentProgress)
     {
       progressValue = currentProgress;
-      m_progress->setValue(currentProgress);
-      #ifdef Q_OS_WIN
-      m_taskBarButton->progress()->setValue(currentProgress);
-      #endif
+      setProgress(currentProgress);
     }
 
     const auto data = m_soundFiles.at(i);
@@ -323,7 +333,7 @@ void OGGExtractor::extractFiles()
       auto name = m_tableModel->dataDisplayRole(data, 1).toString(); // Filename.
 
       // play safe with names, only common characters to avoid unicode.
-      name = name.replace(QRegExp("[^a-zA-Z0-9_- ]"),QString(""));
+      name = name.replace(QRegularExpression("[^a-zA-Z0-9_- ]"),QString(""));
 
       QDir dir(destination);
       QFile file(dir.absoluteFilePath(tr("%1.ogg").arg(name)));
@@ -358,7 +368,7 @@ void OGGExtractor::extractFiles()
   }
 
   endProcess();
-  m_progress->setFormat("%p%");
+  setProgress(0, "%p%");
 
   QApplication::restoreOverrideCursor();
 }
@@ -388,7 +398,7 @@ void OGGExtractor::insertWidgetsInTable()
   m_filesTable->setUpdatesEnabled(false);
 
   int progressValue = 0;
-  m_progress->setFormat("Inserting data... %p%");
+  setProgress(0, "Inserting data... %p%");
   const auto rowsNum = m_tableModel->pageItems();
   
   for (unsigned int i = 0; i < rowsNum; ++i)
@@ -414,12 +424,11 @@ void OGGExtractor::insertWidgetsInTable()
     if (currentProgress != progressValue)
     {
       progressValue = currentProgress;
-      m_progress->setValue(progressValue);
+      setProgress(progressValue);
     }
   }
 
-  m_progress->setFormat("%p%");
-  m_progress->setValue(0);
+  setProgress(0, "%p%");
   m_filesTable->setUpdatesEnabled(true);
 }
 
@@ -464,12 +473,7 @@ void OGGExtractor::startProcess()
   m_addFile->setEnabled(false);
   m_removeFile->setEnabled(false);
 
-  m_progress->setValue(0);
-  m_progress->setEnabled(true);
-  #ifdef Q_OS_WIN
-  m_taskBarButton->progress()->setValue(0);
-  m_taskBarButton->progress()->setVisible(true);
-  #endif
+  setProgress(0);
   m_cancel->setEnabled(true);
 
   m_next->setEnabled(false);
@@ -489,12 +493,7 @@ void OGGExtractor::endProcess()
   onContainerSelectionChanged();
 
   m_progress->setEnabled(false);
-  m_progress->setFormat("%p%");
-  m_progress->setValue(0);
-  #ifdef Q_OS_WIN
-  m_taskBarButton->progress()->setValue(0);
-  m_taskBarButton->progress()->setVisible(false);
-  #endif
+  setProgress(0, "%p%");
 
   m_streamsCount->setText(tr("%1").arg(m_soundFiles.size()));
 }
@@ -640,52 +639,54 @@ std::shared_ptr<QByteArray> OGGExtractor::decodeOGG(OGGData& data)
 }
 
 //----------------------------------------------------------------
-void OGGExtractor::showEvent(QShowEvent* e)
-{
-  QMainWindow::showEvent(e);
-
-  #ifdef Q_OS_WIN
-  m_taskBarButton = new QWinTaskbarButton(this);
-  m_taskBarButton->setWindow(this->windowHandle());
-  m_taskBarButton->progress()->setRange(0,100);
-  m_taskBarButton->progress()->setVisible(false);
-  #endif
-}
-
-//----------------------------------------------------------------
 void OGGExtractor::playBufffer(std::shared_ptr<QByteArray> pcmBuffer, const OGGData &data)
 {
   QAudioFormat format;
   format.setChannelCount(data.channels);
   format.setSampleRate(data.rate);
-  format.setByteOrder(QAudioFormat::LittleEndian);
-  format.setSampleSize(16);
-  format.setCodec("audio/pcm");
-  format.setSampleType(QAudioFormat::SampleType::SignedInt);
+  format.setSampleFormat(QAudioFormat::SampleFormat::Int16);
 
-  m_buffer = std::make_shared<QBuffer>(pcmBuffer.get());
-  m_buffer->open(QIODevice::ReadOnly);
-  m_buffer->seek(0);
-
-  QAudioDeviceInfo audioinfo(QAudioDeviceInfo::defaultOutputDevice());
-  if (!audioinfo.isFormatSupported(format))
+  if (!m_audioDevice.isFormatSupported(format))
   {
     errorDialog(tr("Raw audio format not supported, cannot play audio."));
     stopBuffer();
     return;
   }
 
-  m_audio = std::make_shared<QAudioOutput>(format, this);
+  m_buffer = std::make_shared<QBuffer>(pcmBuffer.get());
+  m_buffer->open(QIODevice::ReadOnly);
+  m_buffer->seek(0);
+
+  m_audio = std::make_shared<QAudioSink>(m_audioDevice, format);
   m_audio->setVolume(m_volume);
-  m_audio->setNotifyInterval(100);
   m_audio->setProperty("Duration", data.duration);
-
-  m_progress->setFormat("Playing... %p%");
-
   m_audio->start(m_buffer.get());
 
+  setProgress(0, "Playing... %p%");
+
   connect(m_audio.get(), SIGNAL(stateChanged(QAudio::State)), this, SLOT(stopBuffer()));
-  connect(m_audio.get(), SIGNAL(notify()), this, SLOT(onAudioNotify()));
+  QTimer::singleShot(100, this, SLOT(onAudioNotify()));
+}
+
+//----------------------------------------------------------------
+void OGGExtractor::setProgress(int value, QString format)
+{
+  if(!format.isEmpty() && format != m_progress->format())
+    m_progress->setFormat(format);
+
+  QTaskBarButton::State tbState = m_taskBarButton.state();
+  QTaskBarButton::State state;
+
+  if(value == 0)
+    state = QTaskBarButton::State::Invisible;
+  else
+    state = QTaskBarButton::State::Normal;
+
+  if(tbState != state)
+    m_taskBarButton.setState(state);
+
+  m_progress->setValue(value);
+  m_taskBarButton.setValue(value);
 }
 
 //----------------------------------------------------------------
@@ -708,8 +709,7 @@ void OGGExtractor::stopBuffer()
   m_buffer = nullptr;
   m_sample = nullptr;
 
-  m_progress->setFormat("%p%");
-  m_progress->setValue(0);
+  setProgress(0, "%p%");
 }
 
 //----------------------------------------------------------------
@@ -766,10 +766,7 @@ void OGGExtractor::onProgressSignaled(int value)
   if(value == m_progress->value())
     return;
 
-  m_progress->setValue(value);
-  #ifdef Q_OS_WIN
-  m_taskBarButton->progress()->setValue(value);
-  #endif
+  setProgress(value);
 
   auto task = qobject_cast<ScanThread *>(sender());
   if(task)
@@ -799,14 +796,19 @@ void OGGExtractor::onMovementButtonClicked()
 //----------------------------------------------------------------
 void OGGExtractor::onAudioNotify()
 {
+  if(!m_audio) return;
+
   bool ok = false;
   const auto duration = m_audio->property("Duration").toDouble(&ok);
 
   if(ok)
   {
     const int progressValue = m_audio->processedUSecs()/(duration*10000);
-    m_progress->setValue(progressValue);
+    setProgress(progressValue);
   }
+
+  if(m_audio->state() == QAudio::State::ActiveState)
+    QTimer::singleShot(100, this, SLOT(onAudioNotify()));    
 }
 
 //----------------------------------------------------------------

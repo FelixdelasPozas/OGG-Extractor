@@ -37,7 +37,7 @@ class ClickableHoverLabel
      * \f Widget flags.
      *
      */
-    explicit ClickableHoverLabel(QWidget *parent = 0, Qt::WindowFlags f = 0);
+    explicit ClickableHoverLabel(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 
     /** \brief ClickableHoverLabel class constructor.
      * \param[in] text Label text.
@@ -45,7 +45,7 @@ class ClickableHoverLabel
      * \f Widget flags.
      *
      */
-    explicit ClickableHoverLabel(const QString &text, QWidget *parent = 0, Qt::WindowFlags f = 0);
+    explicit ClickableHoverLabel(const QString &text, QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 
     /** \brief ClickableHoverLabel class virtual destructor.
      *
@@ -56,13 +56,13 @@ class ClickableHoverLabel
     void clicked();
 
   protected:
-    void mousePressEvent(QMouseEvent *e)
+    void mousePressEvent(QMouseEvent *e) override
     {
       emit clicked();
       QLabel::mousePressEvent(e);
     }
 
-    virtual void enterEvent(QEvent *event) override
+    virtual void enterEvent(QEnterEvent *event) override
     {
       setCursor(Qt::PointingHandCursor);
       QLabel::enterEvent(event);

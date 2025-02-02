@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.5.0)
+cmake_minimum_required (VERSION 3.10.0)
 
 project(OGGExtractor)
 
@@ -7,7 +7,7 @@ cmake_policy(SET CMP0071 OLD)
 
 # Version Number
 set (OGG_EXTRACTOR_VERSION_MAJOR 1)
-set (OGG_EXTRACTOR_VERSION_MINOR 10)
+set (OGG_EXTRACTOR_VERSION_MINOR 11)
 set (OGG_EXTRACTOR_VERSION_PATCH 0)
 
 # Find includes in corresponding build directories
@@ -18,11 +18,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Find the QtWidgets library
-find_package(Qt5 COMPONENTS Widgets Multimedia)
-
-if(WIN32)
-	find_package(Qt5 COMPONENTS WinExtras)
-endif()
+find_package(Qt6 COMPONENTS Widgets Multimedia)
 
 #libvorbis
 if(WIN32)
@@ -66,14 +62,15 @@ include_directories(
   )
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Add Qt Resource files
-qt5_add_resources(RESOURCES
+qt6_add_resources(RESOURCES
   rsc/resources.qrc
 )
 
-qt5_wrap_ui(CORE_UI
+qt6_wrap_ui(CORE_UI
   # .ui for Qt
   AboutDialog.ui
   OGGExtractor.ui
@@ -92,6 +89,7 @@ set (WINAPP_SOURCES
   OGGContainerWrapper.cpp
   ScanThread.cpp
   Utils.cpp
+  external/QTaskBarButton.cpp
 )
 
 set (CLI_SOURCES
@@ -105,22 +103,17 @@ set(OGG_LIBS
 )
 
 set(EXTERNAL_LIBS
-  Qt5::Widgets
-  Qt5::Multimedia
+  Qt6::Widgets
+  Qt6::Multimedia
   ${OGG_LIBS}
 )
-
-if(WIN32)
-	set(EXTERNAL_LIBS ${EXTERNAL_LIBS} Qt5::WinExtras)
-endif()
 
 add_executable(OGGExtractor ${WINAPP_SOURCES})
 target_link_libraries (OGGExtractor ${EXTERNAL_LIBS})
 if(WIN32)
-  set_target_properties(OGGExtractor PROPERTIES COMPILE_FLAGS "-mwindows ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt5Multimedia_EXECUTABLE_COMPILE_FLAGS}" )
+  set_target_properties(OGGExtractor PROPERTIES COMPILE_FLAGS "-mwindows ${Qt6Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt6Multimedia_EXECUTABLE_COMPILE_FLAGS}" )
   target_link_options(OGGExtractor PUBLIC "-mwindows")
 endif()
-qt5_use_modules(OGGExtractor Widgets Multimedia)
 
 add_executable(OGGExtractor-cli ${CLI_SOURCES})
 target_link_libraries (OGGExtractor-cli ${OGG_LIBS})

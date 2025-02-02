@@ -71,7 +71,7 @@ Simple main dialog.
 ![Main dialog](https://github.com/FelixdelasPozas/OGG-Extractor/assets/12167134/64efffcf-67b2-42f8-882d-b6ce26e18232)
 
 # Repository information
-**Version**: 1.10.0
+**Version**: 1.11.0
 
 **Status**: finished
 
@@ -81,7 +81,7 @@ Simple main dialog.
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |    7          |  389        |    256           | 1545 |
-| C/C++ Header                 |    5          |  132        |    368           | 251  |
-| CMake                        |    1          |   22        |      9           |  95  |
-| **Total**                    |   **13**      |  **543**    |   **633**        |**1891**|
+| C++                          |    9          |  424        |    277           | 1685 |
+| C/C++ Header                 |    7          |  138        |    390           | 302  |
+| CMake                        |    1          |   20        |      9           |  90  |
+| **Total**                    |   **17**      |  **582**    |   **676**        |**2077**|

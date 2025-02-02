@@ -19,23 +19,24 @@
 
 // Qt
 #include <QMainWindow>
+#include <QAudioDevice>
 #include "ui_OGGExtractor.h"
 
 // Project
-#include "OGGContainerWrapper.h"
-#include "ScanThread.h"
+#include <OGGContainerWrapper.h>
+#include <ScanThread.h>
+#include <external/QTaskbarButton.h>
 
 // C++
 #include <memory>
-
-// Qt
-#include <QAudio>
 
 class QByteArray;
 class QToolButton;
 class QBuffer;
 class QAudioOutput;
 class QWinTaskbarButton;
+class QAudioSink;
+class QAudioBuffer;
 class TableModel;
 
 /** \class OGGExtractor
@@ -61,7 +62,7 @@ class OGGExtractor
     virtual ~OGGExtractor();
 
   protected:
-    virtual void showEvent(QShowEvent *e) override final;
+    virtual void showEvent(QShowEvent *e) override;
 
   private slots:
     /** \brief Opens a file selection dialog to select container files.
@@ -218,6 +219,13 @@ class OGGExtractor
      */
     void playBufffer(std::shared_ptr<QByteArray> pcmBuffer, const OGGData &data);
 
+    /** \brief Helper method to set operation progress.
+     * \param[in] value Progress value in [0,100];
+     * \param format Progress bar text format.ABC
+     *
+     */
+    void setProgress(int value, QString format = "");
+
     QStringList          m_containers;     /** file names of the containers.               */
     std::vector<OGGData> m_soundFiles;     /** found OGG files information.                */
     std::vector<bool>    m_soundSelected;  /** true if selected and false otherwise.       */
@@ -226,9 +234,10 @@ class OGGExtractor
 
     QToolButton                  *m_playButton;    /** button of a currently playing sound.                         */
     std::shared_ptr<QByteArray>   m_sample;        /** raw buffer of currently playing sound.                       */
-    std::shared_ptr<QBuffer>      m_buffer;        /** QIODevice wrapper of a memory buffer, 'sample' in this case. */
-    std::shared_ptr<QAudioOutput> m_audio;         /** sound player.                                                */
-    QWinTaskbarButton            *m_taskBarButton; /** taskbar progress widget.                                     */
+    std::shared_ptr<QBuffer>      m_buffer;        /** Sound pcm buffer as QIODevice                                */
+    std::shared_ptr<QAudioSink>   m_audio;           /** sound player.                                                */
+    QTaskBarButton                m_taskBarButton; /** taskbar progress widget.                                     */
     std::shared_ptr<ScanThread>   m_thread;        /** thread for scanning containers.                              */
     TableModel                   *m_tableModel;    /** table internal model.                                        */
+    QAudioDevice                  m_audioDevice;   /** Default audio device.                                        */
 };
