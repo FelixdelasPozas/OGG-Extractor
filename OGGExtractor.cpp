@@ -73,7 +73,7 @@ OGGExtractor::OGGExtractor(QWidget *parent, Qt::WindowFlags flags)
   setupUi(this);
 
   // Better bar than the "Universal" default style in Qt6.
-  m_progress->setStyle(QStyleFactory::create("fusion"));
+  m_progress->setStyle(QStyleFactory::create("windowsvista"));
   m_taskBarButton.setRange(0,100);
 
   m_cancel->setEnabled(false);
@@ -674,13 +674,8 @@ void OGGExtractor::setProgress(int value, QString format)
   if(!format.isEmpty() && format != m_progress->format())
     m_progress->setFormat(format);
 
-  QTaskBarButton::State tbState = m_taskBarButton.state();
-  QTaskBarButton::State state;
-
-  if(value == 0)
-    state = QTaskBarButton::State::Invisible;
-  else
-    state = QTaskBarButton::State::Normal;
+  const QTaskBarButton::State tbState = m_taskBarButton.state();
+  const QTaskBarButton::State state = (value == 0) ? QTaskBarButton::State::Invisible:QTaskBarButton::State::Normal;
 
   if(tbState != state)
     m_taskBarButton.setState(state);

@@ -29,7 +29,8 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-const QString VERSION = QString("version 1.11.0");
+const QString VERSION = QString("version 1.11.1");
+const QString LIBOGG_VERSION = QString("1.3.5");
 const QString COPYRIGHT{"Copyright (c) 2016-%1 Félix de las Pozas Álvarez"};
 
 //-----------------------------------------------------------------
@@ -46,9 +47,9 @@ AboutDialog::AboutDialog(QWidget *parent, Qt::WindowFlags flags)
   m_compilationDate->setText(tr("Compiled on ") + compilation_date + compilation_time);
   m_version->setText(VERSION);
 
-  m_qtVersion->setText(tr("version %1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH));
+  m_qtVersion->setText(tr("version %1").arg(qVersion()));
   const auto vorbisVersion = QString(vorbis_version_string()).split(" ").last();
-  m_vorbisVersion->setText(tr("<b>libVorbis</b> version %1<br><b>libOgg</b> version %2").arg(vorbisVersion).arg("1.3.5"));
+  m_vorbisVersion->setText(tr("libVorbis version %1\nlibOgg version %2").arg(vorbisVersion).arg(LIBOGG_VERSION));
   m_copyright->setText(COPYRIGHT.arg(QDateTime::currentDateTime().date().year()));
 
   QObject::connect(m_kofiLabel, &ClickableHoverLabel::clicked,

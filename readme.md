@@ -40,7 +40,9 @@ The following libraries are required:
 
 # Install
 
-Ogg Extractor is available for Windows 7 onwards. You can download the latest installer from the [releases page](https://github.com/FelixdelasPozas/OGG-Extractor/releases). Neither the application or the installer are digitally signed so the system will ask for approval before running it the first time.
+Ogg Extractor is available for Windows 10 onwards. You can download the latest installer from the [releases page](https://github.com/FelixdelasPozas/OGG-Extractor/releases). Neither the application or the installer are digitally signed so the system will ask for approval before running it the first time.
+
+The last version compatible with Windows 7 is version 1.10.0, you can download it [here](https://github.com/FelixdelasPozas/OGG-Extractor/releases/tag/1.10.0).
 
 # Command-line version
 A command-line version of the application is included as an executable ending in "-cli". The filtering options are the same, 
@@ -50,20 +52,19 @@ command-line version are:
 | Option                       | Description   |
 |:-----------------------------|:--------------|
 | **-h**                       | Shows help.   |
-| **-s \<number\>**              | Filter found streams by size (in Kb). Files less than *number* kb won't be extracted |
-| **-l \<number\>**              | Filter found streams by length in seconds. Files less than *number* seconds won't be extracted |
-| **-o \<output_dir\>**          | Specify output directory for files. |
-| **-i \<input_file\>**          | Specify input file to scan for OGG streams. |
+| **-s \<number\>**            | Filter found streams by size (in Kb). Files less than *number* kb won't be extracted |
+| **-l \<number\>**            | Filter found streams by length in seconds. Files less than *number* seconds won't be extracted |
+| **-o \<output_dir\>**        | Specify output directory for files. |
+| **-i \<input_file\>**        | Specify input file to scan for OGG streams. |
 | **-d**                       | Do not extract OGG streams, just dump stream information in a CSV file. |
-| **-r \<range\>**               | Ranges or positions to extract separated by commas (see description below). | 
+| **-r \<range\>**             | Ranges or positions to extract separated by commas (see description below). | 
 
 Ranges are specified as lower_pos-upper_pos and both positions are included. For example '1,3,7-10' will 
 extract the OGG streams in the positions 1,3,7,8,9 and 10. Positions start at 1.
                   
-The CLI version do not depend on Qt library and the only file needed for it to work is the executable. It's main 
-purpose is to be used inside command-line scripts to scan and extract files in bulk but of course can be used as-is.
-Take into consideration the filtering by size or length do not affect track number and that the combination of filters
-and range can produce no files being extracted. 
+The CLI version do not depend on Qt library. It's main purpose is to be used inside command-line scripts to scan and extract
+files in bulk but of course can be used as-is. Take into consideration the filtering by size or length do not affect track
+number and that the combination of filters and range can produce no files being extracted. 
 
 # Screenshots
 Simple main dialog.
@@ -71,7 +72,7 @@ Simple main dialog.
 ![Main dialog](https://github.com/FelixdelasPozas/OGG-Extractor/assets/12167134/64efffcf-67b2-42f8-882d-b6ce26e18232)
 
 # Repository information
-**Version**: 1.11.0
+**Version**: 1.11.1
 
 **Status**: finished
 
@@ -81,7 +82,7 @@ Simple main dialog.
 
 | Language                     |files          |blank        |comment           |code  |
 |:-----------------------------|--------------:|------------:|-----------------:|-----:|
-| C++                          |    9          |  424        |    277           | 1685 |
+| C++                          |    9          |  423        |    277           | 1681 |
 | C/C++ Header                 |    7          |  138        |    390           | 302  |
 | CMake                        |    1          |   20        |      9           |  90  |
-| **Total**                    |   **17**      |  **582**    |   **676**        |**2077**|
+| **Total**                    |   **17**      |  **581**    |   **676**        |**2073**|

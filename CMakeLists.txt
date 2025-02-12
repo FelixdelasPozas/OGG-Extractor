@@ -8,7 +8,7 @@ cmake_policy(SET CMP0071 OLD)
 # Version Number
 set (OGG_EXTRACTOR_VERSION_MAJOR 1)
 set (OGG_EXTRACTOR_VERSION_MINOR 11)
-set (OGG_EXTRACTOR_VERSION_PATCH 0)
+set (OGG_EXTRACTOR_VERSION_PATCH 1)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -16,6 +16,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
+
+string(TIMESTAMP CURRENT_YEAR "%Y")
 
 # Find the QtWidgets library
 find_package(Qt6 COMPONENTS Widgets Multimedia)
@@ -111,7 +113,7 @@ set(EXTERNAL_LIBS
 add_executable(OGGExtractor ${WINAPP_SOURCES})
 target_link_libraries (OGGExtractor ${EXTERNAL_LIBS})
 if(WIN32)
-  set_target_properties(OGGExtractor PROPERTIES COMPILE_FLAGS "-mwindows ${Qt6Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt6Multimedia_EXECUTABLE_COMPILE_FLAGS}" )
+  set_target_properties(OGGExtractor PROPERTIES COMPILE_FLAGS "-std=c++20 -m64 -Wall -mwindows -Wno-deprecated ${Qt6Widgets_EXECUTABLE_COMPILE_FLAGS} ${Qt6Multimedia_EXECUTABLE_COMPILE_FLAGS}" )
   target_link_options(OGGExtractor PUBLIC "-mwindows")
 endif()
 
